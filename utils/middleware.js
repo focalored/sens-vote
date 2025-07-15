@@ -1,29 +1,29 @@
-const logger = require('./logger')
+const { info, error } = require('./logger');
 
 const requestLogger = (req, res, next) => {
-  logger.info('Method:', req.method)
-  logger.info('Path:', req.path)
-  logger.info('Body:', req.body)
-  logger.info('---')
+  info('Method:', req.method);
+  info('Path:', req.path);
+  info('Body:', req.body);
+  info('---');
   next()
-}
+};
 
 const unknownEndpoint = (req, res) => {
-  res.status(404).send({ error: 'unknown endpoint' })
-}
+  res.status(404).send({ error: 'Unknown endpoint' });
+};
 
 const errorHandler = (error, req, res, next) => {
-  logger.error(error.message)
+  error(error.message);
 
   if (error.name === 'ValidationError') {
-    return res.status(400).send({ error: error.message })
+    return res.status(400).send({ error: error.message });
   }
 
-  res.status(500).json({ error: 'internal server error' })
-}
+  res.status(500).json({ error: 'Internal server error' });
+};
 
 module.exports = {
   requestLogger,
   unknownEndpoint,
   errorHandler
-}
+};
