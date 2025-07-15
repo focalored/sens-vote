@@ -1,7 +1,7 @@
 const VotingSession = require("../models/VotingSession");
 const SoloStrategy = require("../strategies/soloStrategy");
 const ExecStrategy = require("../strategies/execStrategy");
-const MembershipStrategy = require("../strategies/membershipStrategy");
+const PandahoodStrategy = require("../strategies/pandahoodStrategy");
 
 class VotingSessionService {
   constructor(db, { strategies, SessionModel } = {}) {
@@ -10,15 +10,31 @@ class VotingSessionService {
     this.strategies = strategies || {
       solo: new SoloStrategy(),
       exec: ExecStrategy,
-      membership: MembershipStrategy
+      pandahood: new PandahoodStrategy(),
     };
   }
 
   async getSession(id) {
-    return this.Session.findById(id);
+    const session = await this.Session.findById(id);
+
+    if (!session) throw new Error("Session not found");
+
+    return session;
   }
 
-  async createSession({ type, candidates, voterCount, song = null, role = null }) {
+  /**
+   * Creates a new voting session and saves it to DB.
+   * Fetches configuration and a shuffled candidates list using helpers.
+   * 
+   * @param {Object} params - Params for session creation.
+   * @param {string} params.type - The type of voting strategy to use for this session ("solo", "exec", "pandahood")
+   * @param {string[]} params.candidates - The initial list of candidates.
+   * @param {number} params.voterCount - The number of voters.
+   * @param {string=} params.song - The song sung during the solo/membership audition.
+   * @param {string=} params.role - The exec role for an exec election.
+   * @returns {Object} A new MongoDB document containing initial data for this session.
+   */
+  async createSession({ type, candidates, voterCount, song = undefined, role = undefined }) {
     const session = new this.Session({
       type,
       status: "draft",
@@ -34,13 +50,16 @@ class VotingSessionService {
   
   /**
    * Adds a new round to an existing voting session.
-   * @param {import("mongoose").Types.ObjectId | string} id - The _id of the voting session.
-   * @param {number[]} votes - Array of votes corresponding to the candidates, same order as the initial candidates list.
-   * @param {string[]=} candidates - Optional list of candidates for this round. If omitted, the strategy will determine the next candidates.
+   * 
+   * @param {string} id - The id of the voting session.
+   * @param {Object} params - The data given for the new round.
+   * @param {number[]} params.votes - Array of votes corresponding to the candidates, same order as the initial candidates list.
+   * @param {string[]=} params.candidates - Optional list of candidates for this round. If omitted, the strategy will determine the next candidates.
    * @returns {Object} The newly added round data.
    */
-  async addRound(id, votes, candidates = undefined) {
-    const session = await VotingSession.findById(id);
+  async addRound(id, { votes, candidates = undefined }) {
+    const session = await this.Session.findById(id);
+
     if (!session) throw new Error("Session not found");
 
     const roundData = this._buildNewRoundData({
@@ -62,17 +81,31 @@ class VotingSessionService {
     return roundData;
   }
 
-  // helpers
+  /**
+   * Sets the configuration data for a new voting session.
+   * 
+   * @param {Object} params - The params for configuring a voting session.
+   * @param {string} params.type - The voting strategy type used in this session.
+   * @param {number} params.voterCount - The number of voters in this session.
+   * @param {string=} params.song - The song sung during the solo/membership audition.
+   * @param {string=} params.role - The role applied for during the exec election.
+   * @returns {Object} Configuration data to be stored as part of a new session.
+   */
   _getConfigForType({ type, voterCount, song, role }) {
     const config = {
       solo: { voterCount, song },
       exec: { voterCount, role },
-      membership: { voterCount, song }
+      pandahood: { voterCount, song }
     };
 
     return config[type];
   }
 
+  /**
+   * Shuffles a list of candidates.
+   * @param {string[]} candidates - Candidates entering the first round of this voting session. 
+   * @returns {string[]} A shuffleled list of the candidates.
+   */
   _shuffleCandidates(candidates) {
     for (let i = candidates.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -93,12 +126,12 @@ class VotingSessionService {
    * - Prepares and returns the round object to be stored in database.
    * 
    * @param {Object} params - Params for round creation.
-   * @param {string} params.type - The type of voting strategy to use ("solo", "exec", "membership")
+   * @param {string} params.type - The type of voting strategy to use ("solo", "exec", "pandahood")
    * @param {number} params.voterCount - Number of voters in the session.
-   * @param {Array<Object>} params.previousRounds - List of data for previous rounds in this session.
-   * @param {Array<string>} params.initialCandidates - List of candidates when the session was first created.
-   * @param {Array<string>} [params.candidates] - Optional custom candidates for the new round.
-   * @param {Array<number>} params.votes - Votes corresponding to the candidates for this round.
+   * @param {Object[]} params.previousRounds - List of data for previous rounds in this session.
+   * @param {string[]} params.initialCandidates - List of candidates when the session was first created.
+   * @param {string[]} [params.candidates] - Optional custom candidates for the new round.
+   * @param {number[]} params.votes - Votes corresponding to the candidates for this round.
    * @returns {Object} Round data.
    */
   _buildNewRoundData({
