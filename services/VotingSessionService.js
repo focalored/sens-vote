@@ -1,4 +1,5 @@
 const VotingSession = require("../models/VotingSession");
+const RoundBuilder = require("../builders/RoundBuilder");
 const SoloStrategy = require("../strategies/soloStrategy");
 const ExecStrategy = require("../strategies/execStrategy");
 const PandahoodStrategy = require("../strategies/pandahoodStrategy");
@@ -26,7 +27,7 @@ class VotingSessionService {
    * Creates a new voting session and saves it to DB.
    * Fetches configuration and a shuffled candidates list using helpers.
    * 
-   * @param {Object} params - Params for session creation.
+   * @param {Object} params - Body of request containing params for session creation.
    * @param {string} params.type - The type of voting strategy to use for this session ("solo", "exec", "pandahood")
    * @param {string[]} params.candidates - The initial list of candidates.
    * @param {number} params.voterCount - The number of voters.
@@ -52,7 +53,7 @@ class VotingSessionService {
    * Adds a new round to an existing voting session.
    * 
    * @param {string} id - The id of the voting session.
-   * @param {Object} params - The data given for the new round.
+   * @param {Object} params - Data for the new round sent in the request body.
    * @param {number[]} params.votes - Array of votes corresponding to the candidates, same order as the initial candidates list.
    * @param {string[]=} params.candidates - Optional list of candidates for this round. If omitted, the strategy will determine the next candidates.
    * @returns {Object} The newly added round data.
@@ -62,14 +63,9 @@ class VotingSessionService {
 
     if (!session) throw new Error("Session not found");
 
-    const roundData = this._buildNewRoundData({
-      type: session.type,
-      voterCount: session.configuration.voterCount,
-      previousRounds: session.rounds,
-      initialCandidates: session.initialCandidates,
-      candidates,
-      votes
-    });
+    const builder = new RoundBuilder(this.strategies, session, candidates, votes);
+
+    const roundData = builder.build();
 
     session.rounds.push(roundData);
     if (roundData.result.isComplete) {
@@ -113,63 +109,6 @@ class VotingSessionService {
     }
 
     return candidates;
-  }
-
-  /**
-   * Builds data for the next round of voting based on previous rounds and current votes.
-   * 
-   * Steps:
-   * - Fetches prior round data.
-   * - Finalizes next round's candidates.
-   * - For solo auditions: determines whether the next round is an understudy tiebreaker via evalMode.
-   * - Delegates winner calculation to strategy.
-   * - Prepares and returns the round object to be stored in database.
-   * 
-   * @param {Object} params - Params for round creation.
-   * @param {string} params.type - The type of voting strategy to use ("solo", "exec", "pandahood")
-   * @param {number} params.voterCount - Number of voters in the session.
-   * @param {Object[]} params.previousRounds - List of data for previous rounds in this session.
-   * @param {string[]} params.initialCandidates - List of candidates when the session was first created.
-   * @param {string[]} [params.candidates] - Optional custom candidates for the new round.
-   * @param {number[]} params.votes - Votes corresponding to the candidates for this round.
-   * @returns {Object} Round data.
-   */
-  _buildNewRoundData({
-    type,
-    voterCount,
-    previousRounds,
-    initialCandidates,
-    candidates: providedCandidates,
-    votes}
-  ) {
-    const strategy = this.strategies[type];
-    const evalMode = strategy.determineMode(previousRounds.at(-1));
-
-    const candidates = providedCandidates ??
-      (previousRounds.length === 0
-        ? initialCandidates
-        : strategy.suggestNextCandidates(previousRounds.at(-1), evalMode));
-    console.log("candidates passed to getResult", candidates);
-
-    const roundNumber = previousRounds.length + 1;
-
-    const result = strategy.getResult(
-      votes,
-      {
-        candidates,
-        voterCount,
-        roundNumber,
-        previousRound: previousRounds.at(-1),
-        evalMode
-      });
-
-    return {
-      roundNumber,
-      evalMode,
-      candidates,
-      votes,
-      result
-    };
   }
 }
 
