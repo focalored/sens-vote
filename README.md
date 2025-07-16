@@ -1,8 +1,7 @@
 # Sens-Vote: Voting Tool for Sens A cappella
+This repository contains the backend service for Sens-Vote, an app built to streamline voting/election processes in my college a cappella group, including running multi-round voting sessions, computing results, and organizing data.
 
 ## Changelog
-
----
 
 ### June 2025
 - **7/11/2025:** Created voting session schema and connected to MongoDB!
