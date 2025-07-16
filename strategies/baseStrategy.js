@@ -14,16 +14,16 @@ class BaseStrategy {
     return Object.entries(voteMap).sort((a, b) => b[1] - a[1]);
   }
 
-  getResult(votes, context) {
-    throw new Error("Not implemented");
+  determineMode(previousRound) {
+    return "full";
   }
-
+  
   suggestNextCandidates(previousRound, evalMode) {
     throw new Error("Not implemented");
   }
   
-  determineMode(previousRounds) {
-    return "full";
+  getResult(votes, context) {
+    throw new Error("Not implemented");
   }
 }
 

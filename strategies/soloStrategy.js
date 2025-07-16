@@ -8,7 +8,34 @@ class SoloStrategy extends BaseStrategy {
     return soloist && !understudy ? "understudy_only" : "full";
   }
 
-  getResult(votes, { candidates, voterCount, roundNumber, previousRound, evalMode}) {
+  suggestNextCandidates(previousRound, evalMode) {
+    const { candidates, votes } = previousRound;
+
+    const candidateVotes = candidates.map((candidate, i) => [candidate, votes[i]]);
+
+    if (evalMode === "understudy_only") {
+      const soloist = previousRound.result.winners.soloist;
+
+      const nonSoloistVotes = candidateVotes.filter(([candidate]) => candidate !== soloist);
+      if (nonSoloistVotes.length === 0) {
+        throw new Error("No non-soloist candidates found for understudy round");
+      }
+
+      const topScore = Math.max(...nonSoloistVotes.map(([_, vote]) => vote));
+
+      return nonSoloistVotes
+        .filter(([_, vote]) => vote === topScore)
+        .map(([candidate]) => candidate);
+    }
+
+    const topScore = Math.max(...candidateVotes.map(([_, vote]) => vote));
+
+    return candidateVotes
+      .filter(([_, vote]) => topScore - vote < 2)
+      .map(([candidate]) => candidate);
+  }
+  
+  getResult(votes, { candidates, voterCount, roundNumber, previousRound, evalMode }) {
     const sortedVotes = this._getSortedVotes(candidates, votes);
 
     if (sortedVotes.length < 2 && evalMode !== "understudy_only") {
@@ -47,33 +74,6 @@ class SoloStrategy extends BaseStrategy {
       winners: { soloist, understudy },
       isComplete: Boolean(soloist && understudy)
     };
-  }
-
-  suggestNextCandidates(previousRound, evalMode) {
-    const { candidates, votes } = previousRound;
-
-    const candidateVotes = candidates.map((candidate, i) => [candidate, votes[i]]);
-
-    if (evalMode === "understudy_only") {
-      const soloist = previousRound.result.winners.soloist;
-
-      const nonSoloistVotes = candidateVotes.filter(([candidate]) => candidate !== soloist);
-      if (nonSoloistVotes.length === 0) {
-        throw new Error("No non-soloist candidates found for understudy round");
-      }
-
-      const topScore = Math.max(...nonSoloistVotes.map(([_, vote]) => vote));
-
-      return nonSoloistVotes
-        .filter(([_, vote]) => vote === topScore)
-        .map(([candidate]) => candidate);
-    }
-
-    const topScore = Math.max(...candidateVotes.map(([_, vote]) => vote));
-
-    return candidateVotes
-      .filter(([_, vote]) => topScore - vote < 2)
-      .map(([candidate]) => candidate);
   }
 }
 

@@ -1,10 +1,10 @@
-const { info, error } = require('./logger');
+const logger = require('./logger');
 
 const requestLogger = (req, res, next) => {
-  info('Method:', req.method);
-  info('Path:', req.path);
-  info('Body:', req.body);
-  info('---');
+  logger.info('Method:', req.method);
+  logger.info('Path:', req.path);
+  logger.info('Body:', req.body);
+  logger.info('---');
   next()
 };
 
@@ -13,7 +13,7 @@ const unknownEndpoint = (req, res) => {
 };
 
 const errorHandler = (error, req, res, next) => {
-  error(error.message);
+  logger.error(error.message);
 
   if (error.name === 'ValidationError') {
     return res.status(400).send({ error: error.message });
