@@ -2,27 +2,25 @@ graph TD
   Client --> Frontend
   
   subgraph fe [sens-vote frontend]
-    Frontend[React]
+    Frontend[React/Vite]
     
   end
 
   subgraph be [sens-vote backend]
-    Frontend --> Router[VotingSessionRouter]
-    Router --> ReadService[VotingSessionReadService]
-    Router --> WriteService[VotingSessionWriteService]
-    WriteService[VotingSessionWriteService] --> |Build results
-    for each round using| RoundBuilder
-    ReadService --> StatsBuilder
-    RoundBuilder --> |Compute winners and
-    vote statistics| VotingStrategy
+    Frontend --> Router[VotingSessionsRouter]
+    Router --> Service[VotingService]
+    SessionStateMachine --> Service
+    Service --> StatsBuilder
+    Service --> RoundInitializer
+    Service --> RoundFinalizer
+    RoundInitializer --> VotingStrategy
+    RoundFinalizer --> VotingStrategy
     VotingStrategy --> Solo
     VotingStrategy --> Exec
     VotingStrategy --> Membership[Pandahood]
   end
 
   subgraph db [sens-vote database]
-    ReadService --> |Fetch and transform
-    session data for display| VotingSessionModel[(MongoDB)]
-    WriteService[VotingSessionWriteService] -->|Store and update 
-    voting session data| VotingSessionModel[(MongoDB)]
+    Service --> SessionModel[(MongoDB:Session)]
+    Service --> RoundModel[(MongoDB:Round)]
   end
