@@ -1,6 +1,8 @@
 const guardState = (session, expected) => {
   if (session.status !== expected) {
-    throw new Error(`Invalid session status. Expected by service: ${expected}, but got: ${session.status}`)
+    const err = `Invalid session status. Expected by service: ${expected}, but got: ${session.status}`;
+    err.name = 'SessionStatusError';
+    throw err;
   }
 };
 

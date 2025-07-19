@@ -17,7 +17,7 @@ class RoundInitializer {
   #getCandidates(evalMode) {
     if (this.providedCandidates) return this.providedCandidates;
 
-    return this.strategy.suggestNextCandidates(this.rounds.at(-1), evalMode);
+    return this.strategy.suggestCandidates(this.rounds.at(-1), evalMode);
   }
 
   initializeRound() {
@@ -33,7 +33,7 @@ class RoundInitializer {
       sessionId: this.sessionId,
       roundNumber,
       candidates,
-      evalMode
+      evalMode,
     };
   }
 }

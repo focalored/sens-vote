@@ -2,7 +2,7 @@ const VALID_TRANSITIONS = {
   draft: { startSession: "awaiting_moderator" },
   awaiting_moderator: {
     advance: "awaiting_votes",
-    finalize: "complete"
+    finalize: "complete",
   },
   awaiting_votes: { submitVotes: "awaiting_moderator" },
 };

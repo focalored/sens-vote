@@ -11,7 +11,7 @@ module.exports = (votingService) => {
     res.status(201).json(session);
   });
 
-  router.get("/:sessionId", async(req, res, next) => {
+  router.get("/:sessionId", async (req, res, next) => {
     const session = await votingService.getSession(req.params.sessionId);
     res.json(session);
   });
@@ -19,7 +19,7 @@ module.exports = (votingService) => {
   router.post("/:sessionId/start", async (req, res, next) => {
     const session = await votingService.startSession(
       req.params.sessionId,
-      req.body
+      req.body,
     );
     res.json(session);
   });
@@ -27,7 +27,7 @@ module.exports = (votingService) => {
   router.post("/:sessionId/next", async (req, res, next) => {
     const createdRound = await votingService.advanceToNextRound(
       req.params.sessionId,
-      req.body.providedCandidates
+      req.body.providedCandidates,
     );
     res.json(createdRound);
   });
@@ -41,7 +41,7 @@ module.exports = (votingService) => {
     const finalizedRound = await votingService.submitVotes(
       req.params.sessionId,
       req.params.roundId,
-      req.body.votes
+      req.body.votes,
     );
     res.json(finalizedRound);
   });

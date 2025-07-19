@@ -14,8 +14,8 @@ const aggregateVotesFromBallots = (ballots) => {
 
   return Object.entries(tally).map(([candidateId, count]) => ({
     candidateId,
-    count
+    count,
   }));
-}
+};
 
 module.exports = { aggregateVotesFromBallots };

@@ -2,7 +2,7 @@ const { aggregateVotesFromBallots } = require("../utils/aggregateVotes");
 
 class RoundFinalizer {
   constructor({ strategy, currentRound, previousRound = null, voterCount }) {
-    if (!strategy | !currentRound | !voterCount ) {
+    if (!strategy | !currentRound | !voterCount) {
       throw new Error("Round Finalizer: Missing required parameters");
     }
 
@@ -23,13 +23,13 @@ class RoundFinalizer {
       voterCount: this.voterCount,
       roundNumber: this.currentRound.roundNumber,
       previousRound: this.previousRound,
-      evalMode: this.currentRound.evalMode
+      evalMode: this.currentRound.evalMode,
     });
 
     return {
       ...this.currentRound,
       votes: aggregateVotes,
-      result
+      result,
     };
   }
 }

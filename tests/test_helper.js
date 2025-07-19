@@ -7,30 +7,30 @@ const initialSessions = [
     type: "solo",
     configuration: {
       voterCount: 17,
-      song: "Mirrors"
+      song: "Mirrors",
     },
     initialCandidates: ["Bob", "Annie", "Calvin"],
-    roundIds: []
+    roundIds: [],
   },
   {
     status: "draft",
     type: null,
     configuration: null,
-    initialCandidates: null
-  }
+    initialCandidates: null,
+  },
 ];
 
 const nonExistingSessionId = async () => {
   const session = await Session.create({ status: "draft" });
   await session.deleteOne();
-  
+
   return session.id;
 };
 
 const nonExistingRoundId = async () => {
   const round = await Round.create({ roundNumber: 20 });
   await round.deleteOne();
-  
+
   return round.id;
 };
 
@@ -52,11 +52,9 @@ const sessionsInDb = async () => {
 const roundsInDb = async () => {
   const rounds = await Round.find({});
   return rounds.map((round) => JSON.parse(JSON.stringify(round)));
-}
-
-const usersInDb = async () => {
-  
 };
+
+const usersInDb = async () => {};
 
 module.exports = {
   initialSessions,
@@ -64,5 +62,5 @@ module.exports = {
   nonExistingRoundId,
   sessionsInDb,
   roundsInDb,
-  usersInDb
-}
+  usersInDb,
+};

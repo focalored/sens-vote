@@ -24,15 +24,15 @@ describe("when there are initially some sessions saved", () => {
       votes: [
         { candidateId: "Bob", count: 4 },
         { candidateId: "Annie", count: 10 },
-        { candidateId: "Calvin", count: 3 }
+        { candidateId: "Calvin", count: 3 },
       ],
       result: {
         winners: {
           soloist: "Annie",
-          understudy: "Bob"
+          understudy: "Bob",
         },
-        isComplete: true
-      }
+        isComplete: true,
+      },
     });
 
     session1.roundIds = [round1._id];
@@ -44,9 +44,9 @@ describe("when there are initially some sessions saved", () => {
 
   test("sessions are returned as json", async () => {
     await api
-    .get("/api/sessions")
-    .expect(200)
-    .expect("Content-Type", /application\/json/);
+      .get("/api/sessions")
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
   });
 
   test("all sessions are returned", async () => {
@@ -58,7 +58,7 @@ describe("when there are initially some sessions saved", () => {
   test("a specific session is within the returned sessions", async () => {
     const response = await api.get("/api/sessions");
 
-    const sessionIds = response.body.map(e => e.id);
+    const sessionIds = response.body.map((e) => e.id);
     assert(sessionIds.includes(session1.id));
   });
 
@@ -70,18 +70,18 @@ describe("when there are initially some sessions saved", () => {
       const resultSession = await api
         .get(`/api/sessions/${sessionToView.id}`)
         .expect(200)
-        .expect('Content-Type', /application\/json/);
+        .expect("Content-Type", /application\/json/);
 
       assert.deepStrictEqual(resultSession.body, sessionToView);
     });
 
-    test('fails with status code 404 if session does not exist', async () => {
-      const validNonexistingSessionId = await helper.nonExistingSessionId()
+    test("fails with status code 404 if session does not exist", async () => {
+      const validNonexistingSessionId = await helper.nonExistingSessionId();
 
-      await api.get(`/api/sessions/${validNonexistingSessionId}`).expect(404)
+      await api.get(`/api/sessions/${validNonexistingSessionId}`).expect(404);
     });
 
-    test('fails with status code 400 if sessionId is invalid', async () => {
+    test("fails with status code 400 if sessionId is invalid", async () => {
       const invalidSessionId = "5a3d5da59070081a82a3445";
 
       await api.get(`/api/sessions/${invalidSessionId}`).expect(400);
@@ -94,7 +94,7 @@ describe("when there are initially some sessions saved", () => {
         .get(`/api/sessions/${session1.id}/rounds/${round1.id}`)
         .expect(200)
         .expect("Content-Type", /application\/json/);
-      
+
       assert.deepStrictEqual(resultRound.body, round1);
     });
   });

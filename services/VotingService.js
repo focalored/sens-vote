@@ -16,7 +16,7 @@ class VotingService {
     this.strategies = {
       solo: new SoloStrategy(),
       exec: new ExecStrategy(),
-      pandahood: new PandahoodStrategy()
+      pandahood: new PandahoodStrategy(),
     };
   }
 
@@ -33,23 +33,31 @@ class VotingService {
       status: "draft",
       type: null,
       configuration: null,
-      initialCandidates: null
+      initialCandidates: null,
     });
 
     return session;
   }
 
-  async startSession(sessionId, { type, candidates, voterCount, song = undefined, role = undefined }) {
+  async startSession(
+    sessionId,
+    { type, candidates, voterCount, song = undefined, role = undefined },
+  ) {
     const session = await this._requireSession(sessionId);
     guardState(session, "draft");
 
     session.type = type;
-    session.configuration = this._getConfigForType(type, voterCount, song, role);
+    session.configuration = this._getConfigForType(
+      type,
+      voterCount,
+      song,
+      role,
+    );
     session.initialCandidates = this._shuffleCandidates(candidates);
 
-    const nextState = getNextState(session.status, "startSession")
+    const nextState = getNextState(session.status, "startSession");
     if (!nextState) throw new Error("Invalid state transition");
-    
+
     session.status = nextState;
     await session.save();
 
@@ -60,7 +68,9 @@ class VotingService {
     const session = await this._requireSession(sessionId);
     guardState(session, "awaiting_moderator");
 
-    const previousRounds = await Round.find({ _id: { $in: session.roundIds } }).sort({ roundNumber: 1 });
+    const previousRounds = await Round.find({
+      _id: { $in: session.roundIds },
+    }).sort({ roundNumber: 1 });
 
     if (previousRounds.length === 0 && !providedCandidates) {
       throw new Error("First round must have manually provided candidates");
@@ -70,17 +80,17 @@ class VotingService {
       sessionId,
       strategy: this.strategies[session.type],
       rounds: previousRounds,
-      providedCandidates
+      providedCandidates,
     });
 
     const newRound = initializer.initializeRound();
     const createdRound = await Round.create(newRound);
 
     session.roundIds.push(createdRound._id);
-    
+
     const nextState = getNextState(session.status, "advance");
     if (!nextState) throw new Error("Invalid state transition");
-    
+
     session.status = nextState;
     await session.save();
 
@@ -91,7 +101,9 @@ class VotingService {
     const session = await this._requireSession(sessionId);
     guardState(session, "awaiting_votes");
 
-    const rounds = await Round.find({ _id: { $in: session.roundIds } }).sort({ roundNumber: 1 });
+    const rounds = await Round.find({ _id: { $in: session.roundIds } }).sort({
+      roundNumber: 1,
+    });
     const currentRound = this._requireRound(rounds, roundId);
     const previousRound = rounds.at(-2);
 
@@ -101,19 +113,19 @@ class VotingService {
       strategy: this.strategies[session.type],
       currentRound,
       previousRound,
-      voterCount: session.configuration.voterCount
+      voterCount: session.configuration.voterCount,
     });
 
     const finalizedRound = finalizer.finalizeRound({ votes });
 
     currentRound.votes = finalizedRound.votes;
     currentRound.result = finalizedRound.result;
-  
+
     await currentRound.save();
 
     const nextState = getNextState(session.status, "submitVotes");
     if (!nextState) throw new Error("Invalid state transition");
-    
+
     session.status = nextState;
     await session.save();
 
@@ -126,7 +138,7 @@ class VotingService {
 
     const nextState = getNextState(session.status, "finalize");
     if (!nextState) throw new Error("Invalid state transition");
-    
+
     session.status = nextState;
     await session.save();
     return session;
@@ -134,7 +146,7 @@ class VotingService {
 
   /**
    * Sets the configuration data for a new voting session.
-   * 
+   *
    * @param {Object} params - The params for configuring a voting session.
    * @param {string} params.type - The voting strategy type used in this session.
    * @param {number} params.voterCount - The number of voters in this session.
@@ -146,7 +158,7 @@ class VotingService {
     const config = {
       solo: { voterCount, song },
       exec: { voterCount, role },
-      pandahood: { voterCount, song }
+      pandahood: { voterCount, song },
     };
 
     return config[type];
@@ -154,7 +166,7 @@ class VotingService {
 
   /**
    * Shuffles a list of candidates.
-   * @param {string[]} candidates - Candidates entering the first round of this voting session. 
+   * @param {string[]} candidates - Candidates entering the first round of this voting session.
    * @returns {string[]} A shuffleled list of the candidates.
    */
   _shuffleCandidates(candidates) {
