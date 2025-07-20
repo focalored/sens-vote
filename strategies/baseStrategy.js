@@ -8,7 +8,7 @@ class BaseStrategy {
   }
 
   suggestNextCandidates(previousRound, evalMode) {
-    throw new Error("Not implemented");
+    throw new Error("This function should never be called for this strategy");
   }
 
   getResult(votes, context) {

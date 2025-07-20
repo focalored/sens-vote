@@ -1,4 +1,4 @@
-const BaseStrategy = require("./baseStrategy");
+const BaseStrategy = require("./BaseStrategy");
 
 class SoloStrategy extends BaseStrategy {
   determineMode(previousRound) {
@@ -43,7 +43,7 @@ class SoloStrategy extends BaseStrategy {
   ) {
     if (votes.length === 0) {
       const err = new Error('Insufficient vote data to get round results');
-      err.name = 'NoVotesDataError';
+      err.name = 'InvalidVotesDataError';
       throw err;
     }
     

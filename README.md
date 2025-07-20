@@ -1,12 +1,14 @@
 # Sens-Vote: Voting Tool for Sens A cappella
 
-This repository contains the backend service for Sens-Vote, an app built to streamline voting/election processes in my college a cappella group, including running multi-round voting sessions, computing results, and organizing data.
+This repository contains the backend service for Sens-Vote, a workflow-based voting platform built to streamline in-person elections in my college a cappella group. The app uses state control and a rule-based strategy engine to automate multi-round sessions, and provides a simple interface for admin access to voting history on the go.
 
 ## Changelog
 
 ### June 2025
 
 - **7/11/2025:** Created voting session schema and connected to MongoDB!
-- **7/13/2025:** Built votingSessions router, VotingSessionService class, and SoloStrategy class.
+- **7/13/2025:** Built votingSessions router, VotingService class, and SoloStrategy class.
 - **7/14/2025:** Fixed some major bugs in SoloStrategy, now enforcing different rules for understudy tiebreakers in a solo audition session.
-- **7/15/2025:** Refactored excessive business logic in VotingSessionService by creating a RoundBuilder to process inputs and manage context for strategy layer to consume.
+- **7/15/2025:** Refactored excessive business logic in VotingService by creating a RoundBuilder to process inputs and manage context for strategy layer to consume.
+- **7/17/2025:** Because of how frequently round data needs to be mutated, I refactored it into a separate schema so it's no longer deeply embedded in its session. Implemented a basic state machine to efficiently guard how voting session status evolves in VotingService. Split RoundBuilder into RoundInitializer and RoundFinalizer to separate concerns.
+- **7/19/2025:** Created a new strategy class for callback auditions with separate rules. Expanded the semantic scope of Round.candidates, now supporting options (admit/reject) for a single candidate as an alternative to multiple people.

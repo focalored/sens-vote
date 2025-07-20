@@ -1,4 +1,4 @@
-const SoloStrategy = require('../strategies/soloStrategy');
+const SoloStrategy = require("../strategies/SoloStrategy");
 
 describe('SoloStrategy', () => {
   let strategy;
@@ -180,7 +180,7 @@ describe('SoloStrategy', () => {
   });
 
   describe('getResult', () => {
-    it('should throw "NoVotesDataError" if votes array is empty', () => {
+    it('should throw "InvalidVotesDataError" if votes array is empty', () => {
       expect(() => strategy.getResult(
         [],
         {
@@ -191,7 +191,7 @@ describe('SoloStrategy', () => {
           evalMode: 'full'
         }
       )).toThrow({
-        name: 'NoVotesDataError',
+        name: 'InvalidVotesDataError',
         message: 'Insufficient vote data to get round results'
       });
     });
@@ -270,7 +270,7 @@ describe('SoloStrategy', () => {
         it('should return that candidate as soloist if 50% threshold met', () => {
           const result = strategy.getResult(
             [
-              { candidateId: 'Alice', count: 11 }
+              { candidateId: 'Alice', count: 10 }
             ],
             {
               candidates: [ 'Alice' ],
@@ -313,9 +313,9 @@ describe('SoloStrategy', () => {
           it('should return soloist and understudy if threshold is met and no runner-up ties', () => {
             const result = strategy.getResult(
               [
-                { candidateId: 'Alice', count: 11 },
-                { candidateId: 'Bob', count: 7 },
-                { candidateId: 'Connor', count: 2 },
+                { candidateId: 'Alice', count: 8 },
+                { candidateId: 'Bob', count: 6 },
+                { candidateId: 'Connor', count: 5 },
               ],
               {
                 candidates: [ 'Alice', 'Bob', 'Connor' ],
@@ -335,9 +335,9 @@ describe('SoloStrategy', () => {
           it('should return soloist and no understudy if threshold is met but runner-ups are tied', () => {
             const result = strategy.getResult(
               [
-                { candidateId: 'Alice', count: 10 },
-                { candidateId: 'Bob', count: 5 },
-                { candidateId: 'Connor', count: 5 },
+                { candidateId: 'Alice', count: 8 },
+                { candidateId: 'Bob', count: 6 },
+                { candidateId: 'Connor', count: 6 },
               ],
               {
                 candidates: [ 'Alice', 'Bob', 'Connor' ],
@@ -369,8 +369,13 @@ describe('SoloStrategy', () => {
               {
                 candidates: [ 'Alice', 'Bob', 'Connor' ],
                 voterCount: 20,
-                roundNumber: 1,
-                previousRound: null,
+                roundNumber: 3,
+                previousRound: {
+                  result: {
+                    winners: { soloist: null, understudy: null },
+                    isComplete: false,
+                  }
+                },
                 evalMode: 'full',
               }
             );
