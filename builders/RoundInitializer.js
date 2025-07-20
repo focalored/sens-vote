@@ -1,5 +1,5 @@
 class RoundInitializer {
-  constructor({ sessionId, strategy, rounds, providedCandidates }) {
+  constructor({ sessionId, strategy, rounds, providedCandidates, candidateType }) {
     if (!sessionId || !Array.isArray(rounds) || !strategy) {
       throw new Error("Round Initializer: Missing required parameters");
     }
@@ -12,6 +12,7 @@ class RoundInitializer {
     this.rounds = rounds;
     this.strategy = strategy;
     this.providedCandidates = providedCandidates || null;
+    this.candidateType = candidateType || 'people';
   }
 
   #getCandidates(evalMode) {
@@ -33,6 +34,7 @@ class RoundInitializer {
       sessionId: this.sessionId,
       roundNumber,
       candidates,
+      metadata: { candidateType: this.candidateType },
       evalMode,
     };
   }

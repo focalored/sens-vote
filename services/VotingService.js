@@ -7,15 +7,17 @@ const RoundFinalizer = require("../builders/RoundFinalizer");
 const getNextState = require("../states/sessionStateMachine");
 const guardState = require("../states/guardState");
 
-const SoloStrategy = require("../strategies/soloStrategy");
-const ExecStrategy = require("../strategies/execStrategy");
-const PandahoodStrategy = require("../strategies/pandahoodStrategy");
+const SoloStrategy = require("../strategies/SoloStrategy");
+const ExecStrategy = require("../strategies/ExecStrategy");
+const CallbackStrategy = require('../strategies/CallbackStrategy');
+const PandahoodStrategy = require("../strategies/PandahoodStrategy");
 
 class VotingService {
   constructor() {
     this.strategies = {
       solo: new SoloStrategy(),
       exec: new ExecStrategy(),
+      callback: new CallbackStrategy(),
       pandahood: new PandahoodStrategy(),
     };
   }
@@ -41,7 +43,7 @@ class VotingService {
 
   async startSession(
     sessionId,
-    { type, candidates, voterCount, song = undefined, role = undefined },
+    { type, candidates, voterCount, auditionee = null, proposal = null, song = null, role = null },
   ) {
     const session = await this._requireSession(sessionId);
     guardState(session, "draft");
@@ -50,6 +52,8 @@ class VotingService {
     session.configuration = this._getConfigForType(
       type,
       voterCount,
+      auditionee,
+      proposal,
       song,
       role,
     );
@@ -73,7 +77,24 @@ class VotingService {
     }).sort({ roundNumber: 1 });
 
     if (previousRounds.length === 0 && !providedCandidates) {
-      throw new Error("First round must have manually provided candidates");
+      const err = new Error("First round must have manually provided candidates");
+      // No initial candidates but in reality should be frontend's fault, not user's
+      err.name = 'NoInitialCandidatesError';
+      throw err;
+    }
+
+    /**
+     * If type === 'callback', frontend still sends session.initialCandidates over to the advanceToNextRound's endpoint for starting 1st round.
+     * But here we hardcode the sent over list containing only the auditionee's name into options (definitely/maybe/no callback, abstain).
+     * If this is the second round, where the auditionee was previusly placed in the 'Possible callback' bucket, we do the same hardcoding, because it's the same 4 options.
+     */
+    let candidateType = 'people';
+    if (session.type === 'callback') {
+      providedCandidates = ['Definite callback', 'Maybe callback', 'No callback', 'Abstain'];
+      candidateType = 'options';
+    } else if (session.type === 'pandahood') {
+      providedCandidates = ['Yes', 'No'];
+      candidateType = 'options';
     }
 
     const initializer = new RoundInitializer({
@@ -81,6 +102,7 @@ class VotingService {
       strategy: this.strategies[session.type],
       rounds: previousRounds,
       providedCandidates,
+      candidateType,
     });
 
     const newRound = initializer.initializeRound();
@@ -154,11 +176,12 @@ class VotingService {
    * @param {string=} params.role - The role applied for during the exec election.
    * @returns {Object} Configuration data to be stored as part of a new session.
    */
-  _getConfigForType(type, voterCount, song, role) {
+  _getConfigForType(type, voterCount, auditionee, proposal, song, role) {
     const config = {
       solo: { voterCount, song },
       exec: { voterCount, role },
-      pandahood: { voterCount, song },
+      callback: { voterCount, auditionee, song },
+      pandahood: { voterCount, auditionee, proposal, song },
     };
 
     return config[type];

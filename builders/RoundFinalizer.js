@@ -26,6 +26,12 @@ class RoundFinalizer {
       evalMode: this.currentRound.evalMode,
     });
 
+    if (!result.winners.bucket) {
+      const err = new Error('Callback/Pandahood result must contain a "bucket"');
+      err.name = 'InvalidWinnersError';
+      throw err;
+    }
+
     return {
       ...this.currentRound,
       votes: aggregateVotes,

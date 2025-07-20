@@ -6,13 +6,25 @@ const roundSchema = new mongoose.Schema(
     roundNumber: Number,
     evalMode: String,
     candidates: [String],
+    metadata: { candidateType: {
+      type: String,
+      enum: ['people', 'options'],
+    } },
     votes: [
       {
         candidateId: String,
         count: Number,
       },
     ],
-    result: Object,
+    result: {
+      winners: {
+        soloist: String,
+        understudy: String,
+        role: String,
+        bucket: String,
+      },
+      isComplete: Boolean,
+    },
   },
   { timestamps: true },
 );
