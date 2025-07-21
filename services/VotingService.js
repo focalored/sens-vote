@@ -7,6 +7,8 @@ const RoundFinalizer = require("../builders/RoundFinalizer");
 const getNextState = require("../states/sessionStateMachine");
 const guardState = require("../states/guardState");
 
+const getDefaultCandidatesForStrategy = require('../utils/getDefaultCandidatesForStrategy');
+
 const SoloStrategy = require("../strategies/SoloStrategy");
 const ExecStrategy = require("../strategies/ExecStrategy");
 const CallbackStrategy = require('../strategies/CallbackStrategy');
@@ -43,7 +45,7 @@ class VotingService {
 
   async startSession(
     sessionId,
-    { type, candidates, voterCount, auditionee = null, proposal = null, song = null, role = null },
+    { type, candidates, voterCount, proposal = null, song = null, role = null },
   ) {
     const session = await this._requireSession(sessionId);
     guardState(session, "draft");
@@ -52,7 +54,6 @@ class VotingService {
     session.configuration = this._getConfigForType(
       type,
       voterCount,
-      auditionee,
       proposal,
       song,
       role,
@@ -76,26 +77,21 @@ class VotingService {
       _id: { $in: session.roundIds },
     }).sort({ roundNumber: 1 });
 
-    if (previousRounds.length === 0 && !providedCandidates) {
+    /**
+     * If type === 'callback', frontend still sends the cached session.initialCandidates over to the advanceToNextRound's endpoint for starting 1st round.
+     * But here we hardcode the sent over list containing only the auditionee's name into options (definitely/maybe/no callback, abstain).
+     * If this is the second round, where the auditionee was previusly placed in the 'Possible callback' bucket, we do the same hardcoding, because it's the same 4 options.
+     */
+    let { candidates: defaultCandidates, candidateType } = getDefaultCandidatesForStrategy(session.type);
+
+    if (previousRounds.length === 0 && !providedCandidates && !defaultCandidates) {
       const err = new Error("First round must have manually provided candidates");
       // No initial candidates but in reality should be frontend's fault, not user's
       err.name = 'NoInitialCandidatesError';
       throw err;
     }
 
-    /**
-     * If type === 'callback', frontend still sends session.initialCandidates over to the advanceToNextRound's endpoint for starting 1st round.
-     * But here we hardcode the sent over list containing only the auditionee's name into options (definitely/maybe/no callback, abstain).
-     * If this is the second round, where the auditionee was previusly placed in the 'Possible callback' bucket, we do the same hardcoding, because it's the same 4 options.
-     */
-    let candidateType = 'people';
-    if (session.type === 'callback') {
-      providedCandidates = ['Definite callback', 'Maybe callback', 'No callback', 'Abstain'];
-      candidateType = 'options';
-    } else if (session.type === 'pandahood') {
-      providedCandidates = ['Yes', 'No'];
-      candidateType = 'options';
-    }
+    providedCandidates = defaultCandidates ?? providedCandidates;
 
     const initializer = new RoundInitializer({
       sessionId,
@@ -138,7 +134,7 @@ class VotingService {
       voterCount: session.configuration.voterCount,
     });
 
-    const finalizedRound = finalizer.finalizeRound({ votes });
+    const finalizedRound = finalizer.finalizeRound(votes);
 
     currentRound.votes = finalizedRound.votes;
     currentRound.result = finalizedRound.result;
@@ -176,12 +172,12 @@ class VotingService {
    * @param {string=} params.role - The role applied for during the exec election.
    * @returns {Object} Configuration data to be stored as part of a new session.
    */
-  _getConfigForType(type, voterCount, auditionee, proposal, song, role) {
+  _getConfigForType(type, voterCount, proposal, song, role) {
     const config = {
       solo: { voterCount, song },
       exec: { voterCount, role },
-      callback: { voterCount, auditionee, song },
-      pandahood: { voterCount, auditionee, proposal, song },
+      callback: { voterCount, song },
+      pandahood: { voterCount, proposal, song },
     };
 
     return config[type];

@@ -1,4 +1,4 @@
-const { aggregateVotesFromBallots } = require("../utils/aggregateVotes");
+const validateVotesAgainstCandidates = require('../validators/validateVotesAgainstCandidates');
 
 class RoundFinalizer {
   constructor({ strategy, currentRound, previousRound = null, voterCount }) {
@@ -15,11 +15,11 @@ class RoundFinalizer {
     this.voterCount = voterCount;
   }
 
-  finalizeRound({ votes = null, ballots = null }) {
-    const aggregateVotes = votes || aggregateVotesFromBallots(ballots);
+  finalizeRound(votes) {
+    const expectedOptions = this.strategy.constructor.expectedOptions || null;
+    validateVotesAgainstCandidates(votes, this.currentRound.candidates, expectedOptions)
 
-    const result = this.strategy.getResult(aggregateVotes, {
-      candidates: this.currentRound.candidates,
+    const result = this.strategy.getResult(votes, {
       voterCount: this.voterCount,
       roundNumber: this.currentRound.roundNumber,
       previousRound: this.previousRound,
@@ -34,7 +34,7 @@ class RoundFinalizer {
 
     return {
       ...this.currentRound,
-      votes: aggregateVotes,
+      votes: votes,
       result,
     };
   }

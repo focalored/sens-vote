@@ -1,5 +1,4 @@
 const CallbackStrategy = require('../strategies/CallbackStrategy');
-const VoteCandidateValidationError = require('../errors/VoteCandidateValidationError');
 
 describe('CallbackStrategy', () => {
   let strategy;
@@ -9,23 +8,6 @@ describe('CallbackStrategy', () => {
   });
 
   describe('getResult', () => {
-    it('should throw "VoteCandidateValidationError" if one of the required options is missing', () => {
-      expect(() => strategy.getResult(
-        [
-          { candidateId: 'Definite callback', count: 10 },
-          { candidateId: 'No callback', count: 4 },
-          { candidateId: 'Abstain', count: 2 },
-        ],
-        {
-          candidates: [ 'Definite callback', 'No callback', 'Abstain' ],
-          voterCount: 20,
-          roundNumber: 1,
-          previousRound: null,
-          evalMode: 'full',
-        },
-      )).toThrow(VoteCandidateValidationError);
-    });
-
     describe('round 1 - day of audition', () => {
       it('should return no callback if less than 40% voted definite or maybe', () => {
         const result = strategy.getResult(
@@ -45,6 +27,7 @@ describe('CallbackStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'callback',
           winners: { bucket: 'No callback' },
           isComplete: true,
         });
@@ -68,6 +51,7 @@ describe('CallbackStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'callback',
           winners: { bucket: 'Definite callback' },
           isComplete: true,
         });
@@ -91,6 +75,7 @@ describe('CallbackStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'callback',
           winners: { bucket: 'Possible callback' },
           isComplete: false,
         });
@@ -112,6 +97,7 @@ describe('CallbackStrategy', () => {
             roundNumber: 2,
             previousRound: {
               result: {
+                type: 'callback',
                 winners: { bucket: 'Possible callback' },
                 isComplete: false,
               }
@@ -120,6 +106,7 @@ describe('CallbackStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'callback',
           winners: { bucket: 'No callback' },
           isComplete: true,
         });
@@ -139,6 +126,7 @@ describe('CallbackStrategy', () => {
             roundNumber: 2,
             previousRound: {
               result: {
+                type: 'callback',
                 winners: { bucket: 'Possible callback' },
                 isComplete: false,
               }
@@ -147,6 +135,7 @@ describe('CallbackStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'callback',
           winners: { bucket: 'Definite callback' },
           isComplete: true,
         });
@@ -166,6 +155,7 @@ describe('CallbackStrategy', () => {
             roundNumber: 2,
             previousRound: {
               result: {
+                type: 'callback',
                 winners: { bucket: 'Possible callback' },
                 isComplete: false,
               }
@@ -175,6 +165,7 @@ describe('CallbackStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'callback',
           winners: { bucket: 'Possible callback' },
           isComplete: true,
         });

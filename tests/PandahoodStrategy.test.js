@@ -1,5 +1,4 @@
 const PandahoodStrategy = require('../strategies/PandahoodStrategy');
-const VoteCandidateValidationError = require('../errors/VoteCandidateValidationError');
 
 describe('PandahoodStrategy', () => {
   let strategy;
@@ -9,21 +8,6 @@ describe('PandahoodStrategy', () => {
   });
 
   describe('getResult', () => {
-    it('should throw "VoteCandidateValidationError" if one of the required options is missing', () => {
-      expect(() => strategy.getResult(
-        [
-          { candidateId: 'Yes', count: 14 },
-        ],
-        {
-          candidates: [ 'Yes' ],
-          voterCount: 20,
-          roundNumber: 1,
-          previousRound: null,
-          evalMode: 'full',
-        }
-      )).toThrow(VoteCandidateValidationError);
-    });
-
     describe('proposal round 1', () => {
       it('should return as passed if 80% or more voted yes', () => {
         const result = strategy.getResult(
@@ -41,6 +25,7 @@ describe('PandahoodStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'pandahood',
           winners: { bucket: 'Proposal passed' },
           isComplete: true,
         });
@@ -62,6 +47,7 @@ describe('PandahoodStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'pandahood',
           winners: { bucket: 'Proposal struck' },
           isComplete: false,
         });
@@ -81,6 +67,7 @@ describe('PandahoodStrategy', () => {
             roundNumber: 2,
             previousRound: {
               result: {
+                type: 'pandahood',
                 winners: { bucket: 'Proposal struck' },
                 isComplete: false,
               }
@@ -90,6 +77,7 @@ describe('PandahoodStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'pandahood',
           winners: { bucket: 'Proposal passed' },
           isComplete: true,
         });
@@ -107,6 +95,7 @@ describe('PandahoodStrategy', () => {
             roundNumber: 2,
             previousRound: {
               result: {
+                type: 'pandahood',
                 winners: { bucket: 'Proposal struck' },
                 isComplete: false,
               }
@@ -116,6 +105,7 @@ describe('PandahoodStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'pandahood',
           winners: { bucket: 'Proposal struck' },
           isComplete: true,
         });

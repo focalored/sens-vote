@@ -18,7 +18,9 @@ class RoundInitializer {
   #getCandidates(evalMode) {
     if (this.providedCandidates) return this.providedCandidates;
 
-    return this.strategy.suggestCandidates(this.rounds.at(-1), evalMode);
+    if (typeof this.strategy.suggestCandidates === 'function') {
+      return this.strategy.suggestCandidates(this.rounds.at(-1), evalMode);
+    }
   }
 
   initializeRound() {

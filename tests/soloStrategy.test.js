@@ -1,5 +1,5 @@
 const SoloStrategy = require("../strategies/SoloStrategy");
-const VoteCandidateValidationError = require('../errors/VoteCandidateValidationError');
+const LogicConflictError = require('../errors/LogicConflictError');
 
 describe('SoloStrategy', () => {
   let strategy;
@@ -105,7 +105,7 @@ describe('SoloStrategy', () => {
         ]);
       });
       
-      it('should throw "NoUnderstudyCandidatesError" if only soloist is present in previousRound votes', () => {
+      it('should throw "LogicConflictError" if only soloist is present in previousRound votes', () => {
         expect(() => strategy.suggestCandidates(
           {
             votes: [
@@ -121,7 +121,7 @@ describe('SoloStrategy', () => {
           },
           'understudy_only'
         )).toThrow({
-          name: 'NoUnderstudyCandidatesError',
+          name: 'LogicConflictError',
           message: 'No non-soloist candidates found for understudy round',
         });
       });
@@ -223,20 +223,8 @@ describe('SoloStrategy', () => {
   });
 
   describe('getResult', () => {
-    it('should throw "VoteCandidateValidationError" if votes and candidates do not perfectly match', () => {
-      expect(() => strategy.getResult(
-        [
-          { candidateId: 'Alice', count: 5 },
-          { candidateId: 'Bob', count: 5 },
-        ],
-        {
-          candidates: [ 'Alice', 'Connor' ],
-        }
-      )).toThrow(VoteCandidateValidationError);
-    });
-
     describe('when evalMode is "understudy_only"', () => {
-      it('should throw "MissingSoloistError" if previous round soloist is null', () => {
+      it('should throw "LogicConflictError" if previous round soloist is null', () => {
         expect(() => strategy.getResult(
           [
             { candidateId: 'Alice', count: 10 },
@@ -248,6 +236,7 @@ describe('SoloStrategy', () => {
             roundNumber: 2,
             previousRound: {
               result: {
+                type: 'solo',
                 winners: { soloist: null, understudy: null },
                 isComplete: false,
               },
@@ -255,7 +244,7 @@ describe('SoloStrategy', () => {
             evalMode: 'understudy_only',
           }
         )).toThrow({
-          name: 'MissingSoloistError',
+          name: 'LogicConflictError',
           message: 'Missing soloist in previous round for understudy_only mode',
         });
       });
@@ -272,6 +261,7 @@ describe('SoloStrategy', () => {
             roundNumber: 2,
             previousRound: {
               result: {
+                type: 'solo',
                 winners: { soloist: 'Connor', understudy: null },
                 isComplete: false,
               },
@@ -281,6 +271,7 @@ describe('SoloStrategy', () => {
         )
         
         expect(result).toStrictEqual({
+          type: 'solo',
           winners: { soloist: 'Connor', understudy: 'Alice' },
           isComplete: true,
         });
@@ -298,6 +289,7 @@ describe('SoloStrategy', () => {
             roundNumber: 2,
             previousRound: {
               result: {
+                type: 'solo',
                 winners: { soloist: 'Connor', understudy: null },
                 isComplete: false,
               },
@@ -307,6 +299,7 @@ describe('SoloStrategy', () => {
         )
         
         expect(result).toStrictEqual({
+          type: 'solo',
           winners: { soloist: 'Connor', understudy: null },
           isComplete: false,
         });
@@ -330,6 +323,7 @@ describe('SoloStrategy', () => {
           );
 
           expect(result).toStrictEqual({
+            type: 'solo',
             winners: { soloist: 'Alice', understudy: null },
             isComplete: true,
           });
@@ -350,6 +344,7 @@ describe('SoloStrategy', () => {
           );
 
           expect(result).toStrictEqual({
+            type: 'solo',
             winners: { soloist: null, understudy: null },
             isComplete: false,
           });
@@ -375,6 +370,7 @@ describe('SoloStrategy', () => {
             );
 
             expect(result).toStrictEqual({
+              type: 'solo',
               winners: { soloist: 'Alice', understudy: 'Bob' },
               isComplete: true,
             });
@@ -393,6 +389,7 @@ describe('SoloStrategy', () => {
                 roundNumber: 2,
                 previousRound: {
                   result: {
+                    type: 'solo',
                     winners: { soloist: null, understudy: null },
                     isComplete: false,
                   },
@@ -402,6 +399,7 @@ describe('SoloStrategy', () => {
             );
 
             expect(result).toStrictEqual({
+              type: 'solo',
               winners: { soloist: 'Alice', understudy: null },
               isComplete: false,
             });
@@ -420,6 +418,7 @@ describe('SoloStrategy', () => {
                 roundNumber: 3,
                 previousRound: {
                   result: {
+                    type: 'solo',
                     winners: { soloist: null, understudy: null },
                     isComplete: false,
                   }
@@ -429,6 +428,7 @@ describe('SoloStrategy', () => {
             );
 
             expect(result).toStrictEqual({
+              type: 'solo',
               winners: { soloist: null, understudy: null },
               isComplete: false,
             });
@@ -449,6 +449,7 @@ describe('SoloStrategy', () => {
                 roundNumber: 4,
                 previousRound: {
                   result: {
+                    type: 'solo',
                     winners: { soloist: null, understudy: null },
                     isComplete: false,
                   },
@@ -458,6 +459,7 @@ describe('SoloStrategy', () => {
             );
 
             expect(result).toStrictEqual({
+              type: 'solo',
               winners: { soloist: 'Alice', understudy: 'Bob' },
               isComplete: true,
             });
@@ -476,6 +478,7 @@ describe('SoloStrategy', () => {
                 roundNumber: 4,
                 previousRound: {
                   result: {
+                    type: 'solo',
                     winners: { soloist: null, understudy: null },
                     isComplete: false,
                   },
@@ -485,6 +488,7 @@ describe('SoloStrategy', () => {
             );
 
             expect(result).toStrictEqual({
+              type: 'solo',
               winners: { soloist: 'Alice', understudy: null },
               isComplete: false,
             });
@@ -503,6 +507,7 @@ describe('SoloStrategy', () => {
                 roundNumber: 4,
                 previousRound: {
                   result: {
+                    type: 'solo',
                     winners: { soloist: null, understudy: null },
                     isComplete: false,
                   },
@@ -512,6 +517,7 @@ describe('SoloStrategy', () => {
             );
 
             expect(result).toStrictEqual({
+              type: 'solo',
               winners: { soloist: null, understudy: null },
               isComplete: false,
             });

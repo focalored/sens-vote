@@ -1,4 +1,5 @@
 const BaseStrategy = require("./BaseStrategy");
+const LogicConflictError = require('../errors/LogicConflictError');
 
 class SoloStrategy extends BaseStrategy {
   determineMode(previousRound) {
@@ -18,9 +19,7 @@ class SoloStrategy extends BaseStrategy {
         (vote) => vote.candidateId !== soloist
       );
       if (nonSoloistVotes.length === 0) {
-        const err = new Error('No non-soloist candidates found for understudy round');
-        err.name = 'NoUnderstudyCandidatesError';
-        throw err;
+        throw new LogicConflictError('No non-soloist candidates found for understudy round');
       }
 
       const topScore = Math.max(...nonSoloistVotes.map((v) => v.count || 0));
@@ -39,10 +38,8 @@ class SoloStrategy extends BaseStrategy {
 
   getResult(
     votes,
-    { candidates, voterCount, roundNumber, previousRound, evalMode },
+    { voterCount, roundNumber, previousRound, evalMode },
   ) {
-    this._validateVotesAgainstCandidates(votes, candidates);
-
     const sortedVotes = this._getSortedVotes(votes);
 
     const [first, second, ...rest] = sortedVotes;
@@ -52,14 +49,13 @@ class SoloStrategy extends BaseStrategy {
       const soloist = previousRound?.result?.winners?.soloist;
 
       if (!soloist) {
-        const err = new Error('Missing soloist in previous round for understudy_only mode');
-        err.name = 'MissingSoloistError';
-        throw err;
+        throw new LogicConflictError('Missing soloist in previous round for understudy_only mode');
       }
 
       const understudy = first.count > second.count ? first.candidateId : null;
 
       return {
+        type: 'solo',
         winners: { soloist, understudy },
         isComplete: Boolean(understudy),
       };
@@ -72,6 +68,7 @@ class SoloStrategy extends BaseStrategy {
       const understudy = null;
 
       return {
+        type: 'solo',
         winners: { soloist, understudy },
         isComplete: Boolean(soloist),
       };
@@ -85,6 +82,7 @@ class SoloStrategy extends BaseStrategy {
       soloist && (!rest || second.count > rest[0].count) ? second.candidateId : null;
 
     return {
+      type: 'solo',
       winners: { soloist, understudy },
       isComplete: Boolean(soloist && understudy),
     };

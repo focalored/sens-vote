@@ -1,24 +1,23 @@
 const BaseStrategy = require("./BaseStrategy");
 
 class PandahoodStrategy extends BaseStrategy {
+  static expectedOptions = ['Yes', 'No'];
+
   getResult(
     votes,
-    { candidates, voterCount, roundNumber }
+    { voterCount, roundNumber }
   ) {
-    this._validateVotesAgainstCandidates(votes, candidates, [
-      'Yes',
-      'No',
-    ]);
-
     const affirmativeVotes = votes.find((v) => v.candidateId === 'Yes');
     if (affirmativeVotes.count / voterCount >= 0.8) {
       return {
+      type: 'pandahood',
         winners: { bucket: 'Proposal passed' },
         isComplete: true,
       };
     }
 
     return {
+      type: 'pandahood',
       winners: { bucket: 'Proposal struck' },
       isComplete: Boolean(roundNumber === 2),
     };

@@ -1,4 +1,6 @@
-class VoteCandidateValidationError extends Error {
+const ValidationError = require('./ValidationError');
+
+class VoteCandidateValidationError extends ValidationError {
   constructor(message) {
     super(message);
     this.name = 'VoteCandidateValidationError';

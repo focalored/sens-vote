@@ -1,5 +1,4 @@
 const ExecStrategy = require('../strategies/ExecStrategy');
-const VoteCandidateValidationError = require('../errors/VoteCandidateValidationError');
 
 describe('ExecStrategy', () => {
   let strategy;
@@ -9,22 +8,6 @@ describe('ExecStrategy', () => {
   });
 
   describe('getResult', () => {
-    it('should throw "VoteCandidateValidationError" if votes and candidates do not perfectly match', () => {
-      expect(() => strategy.getResult(
-        [
-          { candidateId: 'Alice', count: 14 },
-          { candidateId: 'Bob', count: 4 },
-        ],
-        {
-          candidates: [ 'Alice', 'Connor' ],
-          voterCount: 20,
-          roundNumber: 1,
-          previousRound: null,
-          evalMode: 'full',
-        }
-      )).toThrow(VoteCandidateValidationError);
-    });
-
     describe('round 1', () => {
       it('should return top candidate if 75% threshold is met', () => {
         const result = strategy.getResult(
@@ -42,6 +25,7 @@ describe('ExecStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'exec',
           winners: { role: 'Alice' },
           isComplete: true,
         });
@@ -63,6 +47,7 @@ describe('ExecStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'exec',
           winners: { role: null },
           isComplete: false,
         });
@@ -82,6 +67,7 @@ describe('ExecStrategy', () => {
               roundNumber: 2,
               previousRound: {
                 result: {
+                  type: 'exec',
                   winners: { role: null },
                   isComplete: false,
                 }
@@ -91,6 +77,7 @@ describe('ExecStrategy', () => {
           );
 
           expect(result).toStrictEqual({
+            type: 'exec',
             winners: { role: 'Alice' },
             isComplete: true,
           });
@@ -107,6 +94,7 @@ describe('ExecStrategy', () => {
               roundNumber: 2,
               previousRound: {
                 result: {
+                  type: 'exec',
                   winners: { role: null },
                   isComplete: false,
                 }
@@ -116,6 +104,7 @@ describe('ExecStrategy', () => {
           );
 
           expect(result).toStrictEqual({
+            type: 'exec',
             winners: { role: null },
             isComplete: false,
           });
@@ -135,6 +124,7 @@ describe('ExecStrategy', () => {
               roundNumber: 2,
               previousRound: {
                 result: {
+                  type: 'exec',
                   winners: { role: null },
                   isComplete: false,
                 }
@@ -144,6 +134,7 @@ describe('ExecStrategy', () => {
           );
 
           expect(result).toStrictEqual({
+            type: 'exec',
             winners: { role: 'Alice' },
             isComplete: true,
           });
@@ -161,6 +152,7 @@ describe('ExecStrategy', () => {
               roundNumber: 2,
               previousRound: {
                 result: {
+                  type: 'exec',
                   winners: { role: null },
                   isComplete: false,
                 }
@@ -170,6 +162,7 @@ describe('ExecStrategy', () => {
           );
 
           expect(result).toStrictEqual({
+            type: 'exec',
             winners: { role: null },
             isComplete: false,
           });
@@ -187,6 +180,7 @@ describe('ExecStrategy', () => {
               roundNumber: 2,
               previousRound: {
                 result: {
+                  type: 'exec',
                   winners: { role: null },
                   isComplete: false,
                 }
@@ -196,6 +190,7 @@ describe('ExecStrategy', () => {
           );
 
           expect(result).toStrictEqual({
+            type: 'exec',
             winners: { role: null },
             isComplete: false,
           });
@@ -216,6 +211,7 @@ describe('ExecStrategy', () => {
             roundNumber: 3,
             previousRound: {
               result: {
+                type: 'exec',
                 winners: { role: null },
                 isComplete: false,
               }
@@ -225,6 +221,7 @@ describe('ExecStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'exec',
           winners: { role: 'Alice' },
           isComplete: true,
         });
@@ -242,6 +239,7 @@ describe('ExecStrategy', () => {
             roundNumber: 3,
             previousRound: {
               result: {
+                type: 'exec',
                 winners: { role: null },
                 isComplete: false,
               }
@@ -251,6 +249,7 @@ describe('ExecStrategy', () => {
         );
 
         expect(result).toStrictEqual({
+          type: 'exec',
           winners: { role: null },
           isComplete: true,
         });
