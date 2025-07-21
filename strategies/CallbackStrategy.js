@@ -6,22 +6,15 @@ class CallbackStrategy extends BaseStrategy {
     votes,
     { candidates, voterCount, roundNumber }
   ) {
-    if (votes.length !== 4) {
-      const err = new Error('Invalid vote data - must have four options');
-      err.name = 'InvalidVotesDataError';
-      throw err;
-    }
-
-    // Check if total votes === voterCount? since votes include abstains.
+    this._validateVotesAgainstCandidates(votes, candidates, [
+      'Definite callback',
+      'Maybe callback',
+      'No callback',
+      'Abstain',
+    ]);
 
     const definiteVotes = votes.find((v) => v.candidateId === 'Definite callback');
     const maybeVotes = votes.find((v) => v.candidateId === 'Maybe callback');
-
-    if (!definiteVotes || !maybeVotes) {
-      const err = new Error('Votes missing for definite and maybe callback');
-      err.name = 'VoteCandidateMismatchError';
-      throw err;
-    }
 
     if ((definiteVotes.count + maybeVotes.count) / voterCount < 0.4) {
       return {

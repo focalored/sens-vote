@@ -41,17 +41,7 @@ class SoloStrategy extends BaseStrategy {
     votes,
     { candidates, voterCount, roundNumber, previousRound, evalMode },
   ) {
-    if (votes.length === 0) {
-      const err = new Error('Insufficient vote data to get round results');
-      err.name = 'InvalidVotesDataError';
-      throw err;
-    }
-    
-    if (votes.length !== candidates.length) {
-      const err = new Error('Votes and candidates length mismatch');
-      err.name = 'VoteCandidateMismatchError';
-      throw err;
-    }
+    this._validateVotesAgainstCandidates(votes, candidates);
 
     const sortedVotes = this._getSortedVotes(votes);
 
@@ -59,7 +49,14 @@ class SoloStrategy extends BaseStrategy {
 
     // Understudy-only logic
     if (evalMode === "understudy_only") {
-      const soloist = previousRound?.result?.winners?.soloist || null;
+      const soloist = previousRound?.result?.winners?.soloist;
+
+      if (!soloist) {
+        const err = new Error('Missing soloist in previous round for understudy_only mode');
+        err.name = 'MissingSoloistError';
+        throw err;
+      }
+
       const understudy = first.count > second.count ? first.candidateId : null;
 
       return {

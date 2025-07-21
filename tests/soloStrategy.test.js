@@ -1,4 +1,5 @@
 const SoloStrategy = require("../strategies/SoloStrategy");
+const VoteCandidateValidationError = require('../errors/VoteCandidateValidationError');
 
 describe('SoloStrategy', () => {
   let strategy;
@@ -124,6 +125,27 @@ describe('SoloStrategy', () => {
           message: 'No non-soloist candidates found for understudy round',
         });
       });
+
+      it('should handle missing count values gracefully (defaults to 0)', () => {
+        expect(strategy.suggestCandidates(
+          {
+            votes: [
+              { candidateId: 'Alice', count: 8 },
+              { candidateId: 'Bob', count: 4 },
+              { candidateId: 'Connor', count: 4 },
+              { candidateId: 'Diana' },
+            ],
+            result: {
+              winners: {
+                soloist: 'Alice',
+                understudy: null,
+              },
+              isComplete: false,
+            },
+          },
+          'understudy_only'
+        )).toStrictEqual(['Bob', 'Connor']);
+      });
     });
 
     describe('when evalMode is "full"', () => {
@@ -176,42 +198,68 @@ describe('SoloStrategy', () => {
           'Diana',
         ]);
       });
+
+      it('should handle missing count values gracefully (defaults to 0)', () => {
+        expect(strategy.suggestCandidates(
+          {
+            votes: [
+              { candidateId: 'Alice', count: 8 },
+              { candidateId: 'Bob', count: 7 },
+              { candidateId: 'Connor', count: 4 },
+              { candidateId: 'Diana' },
+            ],
+            result: {
+              winners: {
+                soloist: null,
+                understudy: null,
+              },
+              isComplete: false,
+            },
+          },
+          'full'
+        )).toStrictEqual(['Alice', 'Bob']);
+      });
     });
   });
 
   describe('getResult', () => {
-    it('should throw "InvalidVotesDataError" if votes array is empty', () => {
-      expect(() => strategy.getResult(
-        [],
-        {
-          candidates: [ 'Alice' ],
-          voterCount: 20,
-          roundNumber: 1,
-          previousRound: null,
-          evalMode: 'full'
-        }
-      )).toThrow({
-        name: 'InvalidVotesDataError',
-        message: 'Insufficient vote data to get round results'
-      });
-    });
-
-    // What if lengths match but not candidateIds? Who is in charge of handling?
-    it('should throw "VoteCandidateMismatchError" if votes and candidates arrays have different lengths', () => {
+    it('should throw "VoteCandidateValidationError" if votes and candidates do not perfectly match', () => {
       expect(() => strategy.getResult(
         [
-          { candidateId: 'Alice', count: 5 }
+          { candidateId: 'Alice', count: 5 },
+          { candidateId: 'Bob', count: 5 },
         ],
         {
-          candidates: [ 'Alice', 'Bob' ],
+          candidates: [ 'Alice', 'Connor' ],
         }
-      )).toThrow({
-        name: 'VoteCandidateMismatchError',
-        message: 'Votes and candidates length mismatch'
-      });
+      )).toThrow(VoteCandidateValidationError);
     });
 
     describe('when evalMode is "understudy_only"', () => {
+      it('should throw "MissingSoloistError" if previous round soloist is null', () => {
+        expect(() => strategy.getResult(
+          [
+            { candidateId: 'Alice', count: 10 },
+            { candidateId: 'Bob', count: 9 },
+          ],
+          {
+            candidates: [ 'Alice', 'Bob' ],
+            voterCount: 20,
+            roundNumber: 2,
+            previousRound: {
+              result: {
+                winners: { soloist: null, understudy: null },
+                isComplete: false,
+              },
+            },
+            evalMode: 'understudy_only',
+          }
+        )).toThrow({
+          name: 'MissingSoloistError',
+          message: 'Missing soloist in previous round for understudy_only mode',
+        });
+      });
+
       it('should return soloist and understudy when first has more votes than second', () => {
         const result = strategy.getResult(
           [

@@ -1,4 +1,5 @@
 const CallbackStrategy = require('../strategies/CallbackStrategy');
+const VoteCandidateValidationError = require('../errors/VoteCandidateValidationError');
 
 describe('CallbackStrategy', () => {
   let strategy;
@@ -8,43 +9,21 @@ describe('CallbackStrategy', () => {
   });
 
   describe('getResult', () => {
-    it('should throw "InvalidVotesDataError" if votes length is not four', () => {
+    it('should throw "VoteCandidateValidationError" if one of the required options is missing', () => {
       expect(() => strategy.getResult(
         [
           { candidateId: 'Definite callback', count: 10 },
+          { candidateId: 'No callback', count: 4 },
+          { candidateId: 'Abstain', count: 2 },
         ],
         {
-          candidates: [],
+          candidates: [ 'Definite callback', 'No callback', 'Abstain' ],
           voterCount: 20,
           roundNumber: 1,
           previousRound: null,
           evalMode: 'full',
         },
-      )).toThrow({
-        name: 'InvalidVotesDataError',
-        message: 'Invalid vote data - must have four options'
-      });
-    });
-
-    it('should throw "InvalidVotesDataError" if definite and maybe callback votes missing', () => {
-      expect(() => strategy.getResult(
-        [
-          { candidateId: 'Definite callback', count: 10 },
-          { candidateId: 'Harry', count: 4 },
-          { candidateId: 'No callback', count: 2 },
-          { candidateId: 'Abstain', count: 4 },
-        ],
-        {
-          candidates: [ 'Definite callback', 'Harry', 'No callback', 'Abstain' ],
-          voterCount: 20,
-          roundNumber: 1,
-          previousRound: null,
-          evalMode: 'full',
-        },
-      )).toThrow({
-        name: 'InvalidVotesDataError',
-        message: 'Votes missing for definite and maybe callback',
-      });
+      )).toThrow(VoteCandidateValidationError);
     });
 
     describe('round 1 - day of audition', () => {
