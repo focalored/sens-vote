@@ -10,7 +10,7 @@ describe('PandahoodStrategy', () => {
   describe('getResult', () => {
     describe('proposal round 1', () => {
       it('should return as passed if 80% or more voted yes', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Yes', count: 16 },
             { candidateId: 'No', count: 4 },
@@ -32,7 +32,7 @@ describe('PandahoodStrategy', () => {
       });
 
       it('should return as struck if less than 80% voted yes', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Yes', count: 15 },
             { candidateId: 'No', count: 5 },
@@ -56,7 +56,7 @@ describe('PandahoodStrategy', () => {
 
     describe('proposal round 2', () => {
       it('should return as passed if 80% or more voted yes', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Yes', count: 16 },
             { candidateId: 'No', count: 4 },
@@ -84,7 +84,7 @@ describe('PandahoodStrategy', () => {
       });
 
       it('should return as struck if less than 80% voted yes', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Yes', count: 15 },
             { candidateId: 'No', count: 5 },

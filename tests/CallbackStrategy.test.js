@@ -10,7 +10,7 @@ describe('CallbackStrategy', () => {
   describe('getResult', () => {
     describe('round 1 - day of audition', () => {
       it('should return no callback if less than 40% voted definite or maybe', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Definite callback', count: 1 },
             { candidateId: 'Maybe callback', count: 6 },
@@ -34,7 +34,7 @@ describe('CallbackStrategy', () => {
       });
 
       it('should return definite callback if 80% or more voted definite', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Definite callback', count: 16 },
             { candidateId: 'Maybe callback', count: 4 },
@@ -58,7 +58,7 @@ describe('CallbackStrategy', () => {
       });
 
       it('should return possible callback and incomplete session otherwise', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Definite callback', count: 4 },
             { candidateId: 'Maybe callback', count: 4 },
@@ -84,7 +84,7 @@ describe('CallbackStrategy', () => {
 
     describe('possible callbacks extra round - last day of auditions', () => {
       it('should return no callback if less than 40% voted definite or maybe', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Definite callback', count: 4 },
             { candidateId: 'Maybe callback', count: 3 },
@@ -113,7 +113,7 @@ describe('CallbackStrategy', () => {
       });
 
       it('should return definite callback if 80% or more voted definite', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Definite callback', count: 16 },
             { candidateId: 'Maybe callback', count: 4 },
@@ -142,7 +142,7 @@ describe('CallbackStrategy', () => {
       });
 
       it('should return possible callback and completed session otherwise', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Definite callback', count: 4 },
             { candidateId: 'Maybe callback', count: 4 },

@@ -250,7 +250,7 @@ describe('SoloStrategy', () => {
       });
 
       it('should return soloist and understudy when first has more votes than second', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Alice', count: 10 },
             { candidateId: 'Bob', count: 9 },
@@ -278,7 +278,7 @@ describe('SoloStrategy', () => {
       });
 
       it('should return soloist and no understudy when tied', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Alice', count: 9 },
             { candidateId: 'Bob', count: 9 },
@@ -309,7 +309,7 @@ describe('SoloStrategy', () => {
     describe('when evalMode is "full"', () => {
       describe('when there is only one candidate', () => {
         it('should return that candidate as soloist if 50% threshold met', () => {
-          const result = strategy.getResult(
+          const { result } = strategy.getResult(
             [
               { candidateId: 'Alice', count: 10 }
             ],
@@ -330,7 +330,7 @@ describe('SoloStrategy', () => {
         });
 
         it('should return no soloist if 50% threshold not met', () => {
-          const result = strategy.getResult(
+          const { result } = strategy.getResult(
             [
               { candidateId: 'Alice', count: 9 }
             ],
@@ -354,7 +354,7 @@ describe('SoloStrategy', () => {
       describe('when there is more than one candidate', () => {
         describe('when roundNumber < 4', () => {
           it('should return soloist and understudy if threshold is met and no runner-up ties', () => {
-            const result = strategy.getResult(
+            const { result } = strategy.getResult(
               [
                 { candidateId: 'Alice', count: 8 },
                 { candidateId: 'Bob', count: 6 },
@@ -377,7 +377,7 @@ describe('SoloStrategy', () => {
           });
 
           it('should return soloist and no understudy if threshold is met but runner-ups are tied', () => {
-            const result = strategy.getResult(
+            const { result } = strategy.getResult(
               [
                 { candidateId: 'Alice', count: 8 },
                 { candidateId: 'Bob', count: 6 },
@@ -406,7 +406,7 @@ describe('SoloStrategy', () => {
           });
 
           it('should return no soloist or understudy if threshold is not met', () => {
-            const result = strategy.getResult(
+            const { result } = strategy.getResult(
               [
                 { candidateId: 'Alice', count: 7 },
                 { candidateId: 'Bob', count: 6 },
@@ -437,7 +437,7 @@ describe('SoloStrategy', () => {
 
         describe('when roundNumber >= 4', () => {
           it('should return soloist and understudy if first > second and no runner-up ties', () => {
-            const result = strategy.getResult(
+            const { result } = strategy.getResult(
               [
                 { candidateId: 'Alice', count: 9 },
                 { candidateId: 'Bob', count: 8 },
@@ -466,7 +466,7 @@ describe('SoloStrategy', () => {
           });
 
           it('should return soloist and no understudy if first > second but runner-ups tied', () => {
-            const result = strategy.getResult(
+            const { result } = strategy.getResult(
               [
                 { candidateId: 'Alice', count: 7 },
                 { candidateId: 'Bob', count: 6 },
@@ -495,7 +495,7 @@ describe('SoloStrategy', () => {
           });
 
           it('should return no soloist or understudy if first place is tied', () => {
-            const result = strategy.getResult(
+            const { result } = strategy.getResult(
               [
                 { candidateId: 'Alice', count: 6 },
                 { candidateId: 'Bob', count: 6 },

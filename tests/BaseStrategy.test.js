@@ -7,6 +7,32 @@ describe('BaseStrategy', () => {
     strategy = new BaseStrategy();
   });
 
+  describe('checkTotalVotes', () => {
+    it('should return a warning if vote counts exceed voterCount', () => {
+      const result = BaseStrategy.checkTotalVotes(
+        [
+          { candidateId: 'Alice', count: 10 },
+          { candidateId: 'Bob', count: 11 },
+        ],
+        20,
+      );
+
+      expect(result).toStrictEqual(['Total votes (21) exceed voter count (20)']);
+    });
+
+    it('should return an empty array otherwise', () => {
+      const result = BaseStrategy.checkTotalVotes(
+        [
+          { candidateId: 'Alice', count: 10 },
+          { candidateId: 'Bob', count: 10 },
+        ],
+        20,
+      );
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+
   describe('_getSortedVotes', () => {
     it('should return sorted votes in descending order and maintain relative order', () => {
       const result = strategy._getSortedVotes([

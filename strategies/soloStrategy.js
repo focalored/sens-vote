@@ -40,11 +40,14 @@ class SoloStrategy extends BaseStrategy {
     votes,
     { voterCount, roundNumber, previousRound, evalMode },
   ) {
+    const warnings = BaseStrategy.checkTotalVotes(votes, voterCount);
+
     const sortedVotes = this._getSortedVotes(votes);
 
     const [first, second, ...rest] = sortedVotes;
 
-    // Understudy-only logic
+    let result;
+
     if (evalMode === "understudy_only") {
       const soloist = previousRound?.result?.winners?.soloist;
 
@@ -54,11 +57,13 @@ class SoloStrategy extends BaseStrategy {
 
       const understudy = first.count > second.count ? first.candidateId : null;
 
-      return {
+      result = {
         type: 'solo',
         winners: { soloist, understudy },
         isComplete: Boolean(understudy),
       };
+
+      return { result, warnings };
     }
 
     // Full evaluation logic
@@ -67,11 +72,13 @@ class SoloStrategy extends BaseStrategy {
       const soloist = (first.count / voterCount) >= 0.5 ? first.candidateId : null;
       const understudy = null;
 
-      return {
+      result = {
         type: 'solo',
         winners: { soloist, understudy },
         isComplete: Boolean(soloist),
       };
+
+      return { result, warnings };
     }
 
     const isThresholdMet =
@@ -81,11 +88,13 @@ class SoloStrategy extends BaseStrategy {
     const understudy =
       soloist && (!rest || second.count > rest[0].count) ? second.candidateId : null;
 
-    return {
+    result = {
       type: 'solo',
       winners: { soloist, understudy },
       isComplete: Boolean(soloist && understudy),
     };
+
+    return { result, warnings };
   }
 }
 

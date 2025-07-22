@@ -2,7 +2,7 @@ const validateVotesAgainstCandidates = require('../validators/validateVotesAgain
 
 class RoundFinalizer {
   constructor({ strategy, currentRound, previousRound = null, voterCount }) {
-    if (!strategy | !currentRound | !voterCount) {
+    if (!strategy || !currentRound || !voterCount) {
       throw new Error("Round Finalizer: Missing required parameters");
     }
 
@@ -19,17 +19,15 @@ class RoundFinalizer {
     const expectedOptions = this.strategy.constructor.expectedOptions || null;
     validateVotesAgainstCandidates(votes, this.currentRound.candidates, expectedOptions)
 
-    const result = this.strategy.getResult(votes, {
+    const { result, warnings } = this.strategy.getResult(votes, {
       voterCount: this.voterCount,
       roundNumber: this.currentRound.roundNumber,
       previousRound: this.previousRound,
       evalMode: this.currentRound.evalMode,
     });
 
-    if (!result.winners.bucket) {
-      const err = new Error('Callback/Pandahood result must contain a "bucket"');
-      err.name = 'InvalidWinnersError';
-      throw err;
+    if (warnings.length > 0) {
+      console.warn('Strategy warnings:', warnings);
     }
 
     return {

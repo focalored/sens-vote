@@ -10,7 +10,7 @@ describe('ExecStrategy', () => {
   describe('getResult', () => {
     describe('round 1', () => {
       it('should return top candidate if 75% threshold is met', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Alice', count: 15 },
             { candidateId: 'Bob', count: 4 },
@@ -32,7 +32,7 @@ describe('ExecStrategy', () => {
       });
 
       it('should return no candidate if 75% threhold is not met', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Alice', count: 14 },
             { candidateId: 'Bob', count: 6 },
@@ -57,7 +57,7 @@ describe('ExecStrategy', () => {
     describe('round 2', () => {
       describe('when there is only one candidate', () => {
         it('should return candidate if 50% threshold is met', () => {
-          const result = strategy.getResult(
+          const { result } = strategy.getResult(
             [
               { candidateId: 'Alice', count: 10 },
             ],
@@ -84,7 +84,7 @@ describe('ExecStrategy', () => {
         });
 
         it('should return no candidate if 50% threshold is not met', () => {
-          const result = strategy.getResult(
+          const { result } = strategy.getResult(
             [
               { candidateId: 'Alice', count: 9 },
             ],
@@ -113,7 +113,7 @@ describe('ExecStrategy', () => {
 
       describe('when there are multiple candidates', () => {
         it('should return top candidate if 50% and +2 thresholds are met', () => {
-          const result = strategy.getResult(
+          const { result } = strategy.getResult(
             [
               { candidateId: 'Alice', count: 10 },
               { candidateId: 'Bob', count: 8 },
@@ -141,7 +141,7 @@ describe('ExecStrategy', () => {
         });
 
         it('should return no candidate if 50% threshold is met but not +2 threshold', () => {
-          const result = strategy.getResult(
+          const { result } = strategy.getResult(
             [
               { candidateId: 'Alice', count: 10 },
               { candidateId: 'Bob', count: 9 },
@@ -169,7 +169,7 @@ describe('ExecStrategy', () => {
         });
 
         it('should return no candidate if neither threshold is met', () => {
-          const result = strategy.getResult(
+          const { result } = strategy.getResult(
             [
               { candidateId: 'Alice', count: 9 },
               { candidateId: 'Bob', count: 9 },
@@ -200,7 +200,7 @@ describe('ExecStrategy', () => {
 
     describe('round 3', () => {
       it('should return top candidate if 50% threshold is met', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Alice', count: 10 },
             { candidateId: 'Bob', count: 9 },
@@ -228,7 +228,7 @@ describe('ExecStrategy', () => {
       });
 
       it('should return no candidate and isComplete if threshold is not met', () => {
-        const result = strategy.getResult(
+        const { result } = strategy.getResult(
           [
             { candidateId: 'Alice', count: 9 },
             { candidateId: 'Bob', count: 9 },
