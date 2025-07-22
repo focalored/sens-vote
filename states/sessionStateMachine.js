@@ -12,4 +12,4 @@ const getNextState = (current, action) => {
   return transitions[action] || null;
 };
 
-module.exports = { getNextState };
+module.exports = getNextState;

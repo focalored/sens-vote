@@ -1,6 +1,6 @@
-const StrategyError = require('./StrategyError');
+const DomainError = require('./DomainError');
 
-class LogicConflictError extends StrategyError {
+class LogicConflictError extends DomainError {
   constructor(message) {
     super(message);
     this.name = 'LogicConflictError';
