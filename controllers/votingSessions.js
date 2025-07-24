@@ -1,78 +1,97 @@
 module.exports = (votingService) => {
   const router = require('express').Router();
+  const handleController = require('../utils/handleController');
   const zodMiddleware = require('../utils/zodMiddleware');
   const startSessionSchema = require('../schemas/startSessionSchema');
   const advanceRoundSchema = require('../schemas/advanceRoundSchema');
   const submitVotesSchema = require('../schemas/submitVotesSchema');
+  const {
+    sessionIdParam,
+    sessionAndRoundIdParams,
+    objectIdSchema,
+  } = require('../schemas/objectIdSchema');
 
   router.get(
     "/",
-    async (req, res, next) => {
+    handleController(async (req, res, next) => {
       const sessions = await votingService.getSessions();
       res.json(sessions);
-    });
+    })
+  );
 
   router.get(
     "/:sessionId",
-    async (req, res, next) => {
-      const session = await votingService.getSession(req.params.sessionId);
+    zodMiddleware({ params: sessionIdParam }),
+    handleController(async (req, res, next) => {
+      const session = await votingService.getSession(req.validatedParams.sessionId);
       res.json(session);
-    });
+    })
+  );
   
   router.get(
     "/:sessionId/rounds/:roundId",
-    async (req, res, next) => {
-      const round = await votingService.getRound(req.params.sessionId, req.params.roundId);
-      res.send(round);
-    });
+    zodMiddleware({ params: sessionAndRoundIdParams }),
+    handleController(async (req, res, next) => {
+      const round = await votingService.getRound(
+        req.validatedParams.sessionId,
+        req.validatedParams.roundId);
+      res.json(round);
+    })
+  );
 
   router.post(
     "/",
-    async (req, res, next) => {
+    handleController(async (req, res, next) => {
       const session = await votingService.createSession();
       res.status(201).json(session);
-    });
+    })
+  );
 
   router.post(
     "/:sessionId/start",
-    zodMiddleware(startSessionSchema),
-    async (req, res, next) => {
+    zodMiddleware({ body: startSessionSchema, params: sessionIdParam }),
+    handleController(async (req, res, next) => {
       const session = await votingService.startSession(
-        req.params.sessionId,
+        req.validatedParams.sessionId,
         req.validatedBody,
       );
       res.json(session);
-    });
+    })
+  );
 
   router.post(
     "/:sessionId/next",
-    zodMiddleware(advanceRoundSchema),
-    async (req, res, next) => {
+    zodMiddleware({ body: advanceRoundSchema, params: sessionIdParam }),
+    handleController(async (req, res, next) => {
       const createdRound = await votingService.advanceToNextRound(
-        req.params.sessionId,
+        req.validatedParams.sessionId,
         req.validatedBody.providedCandidates,
       );
       res.json(createdRound);
-    });
+    })
+  );
 
   router.post(
     "/:sessionId/rounds/:roundId/vote",
-    zodMiddleware(submitVotesSchema),
-    async (req, res, next) => {
+    zodMiddleware({ body: submitVotesSchema, params: sessionAndRoundIdParams }),
+    handleController(async (req, res, next) => {
       const finalizedRound = await votingService.submitVotes(
-        req.params.sessionId,
-        req.params.roundId,
+        req.validatedParams.sessionId,
+        req.validatedParams.roundId,
         req.validatedBody.votes,
       );
       res.json(finalizedRound);
-    });
+    })
+  );
 
   router.post(
     "/:sessionId/finalize",
-    async (req, res, next) => {
-      const session = await votingService.finalizeRound(req.params.sessionId);
+    zodMiddleware({ params: sessionIdParam }),
+    handleController(async (req, res, next) => {
+      const session = await votingService.finalizeRound(req.validatedParams.sessionId);
       res.json(session);
-    });
+    })
+  );
 
   return router;
 };

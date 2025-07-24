@@ -15,12 +15,15 @@ const requestLogger = (req, res, next) => {
 };
 
 const unknownEndpoint = (req, res) => {
-  res.status(404).send({ error: "Unknown endpoint" });
+  res.status(404).json({ error: "Unknown endpoint" });
 };
 
 const errorHandler = (error, req, res, next) => {
   logger.error(error.message);
-
+  
+  if (error.name === 'CastError') {
+    return res.status(400).json({ error: 'Malformatted session ID' });
+  }
   if (error instanceof ValidationError) {
     return res.status(400).json({ error: error.errors || error.message });
   }

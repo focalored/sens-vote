@@ -1,7 +1,7 @@
 const validateVotesAgainstCandidates = require('../validators/validateVotesAgainstCandidates');
 
 class RoundFinalizer {
-  constructor({ strategy, currentRound, previousRound = null, voterCount }) {
+  constructor({ strategy, currentRound, previousRound, voterCount }) {
     if (!strategy || !currentRound || !voterCount) {
       throw new Error("Round Finalizer: Missing required parameters");
     }

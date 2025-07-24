@@ -22,10 +22,10 @@ info("connecting to", MONGODB_URI);
 
 const app = express();
 
-const votingService = new VotingService();
-
 app.use(express.json());
 app.use(requestLogger);
+
+const votingService = new VotingService();
 
 app.use("/api/sessions", votingRouter(votingService));
 app.use(unknownEndpoint);

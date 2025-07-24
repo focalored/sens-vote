@@ -17,7 +17,7 @@ describe('zodMiddleware', () => {
       voterCount: 1,
     };
 
-    const middleware = zodMiddleware(startSessionSchema);
+    const middleware = zodMiddleware({ body: startSessionSchema });
 
     middleware(req, res, next);
 
@@ -31,7 +31,7 @@ describe('zodMiddleware', () => {
       voterCount: 0,
     };
 
-    const middleware = zodMiddleware(startSessionSchema);
+    const middleware = zodMiddleware({ body: startSessionSchema });
 
     middleware(req, res, next);
 
