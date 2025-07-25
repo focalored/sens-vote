@@ -125,7 +125,7 @@ class VotingService {
 
     session.roundIds.push(createdRound._id.toString());
 
-    const nextState = getNextState(session.status, "advance");
+    const nextState = getNextState(session.status, "advanceRound");
     if (!nextState) {
       throw new InvalidStateTransitionError(session.status, 'advanceToNextRound');
     }
@@ -147,7 +147,7 @@ class VotingService {
     if (rounds.length === 0) throw new NotFoundError('No rounds found for this session');
 
     const currentRound = rounds.at(-1);
-    if (currentRound.id !== roundId) throw new DomainError('Round is not the latest active round');
+    if (currentRound._id.toString() !== roundId) throw new DomainError('Round is not the current active round');
     const previousRound = rounds.at(-2) || null;
 
     validateVotesAgainstCandidates(
@@ -178,7 +178,7 @@ class VotingService {
     session.status = nextState;
     await session.save();
 
-    return finalizedRound;
+    return currentRound;
   }
 
   async finalizeSession(sessionId) {
@@ -186,7 +186,8 @@ class VotingService {
 
     guardState(session, "awaiting_moderator");
 
-    const nextState = getNextState(session.status, "finalize");
+    console.log(session.status);
+    const nextState = getNextState(session.status, "finalizeSession");
     if (!nextState) {
       throw new InvalidStateTransitionError(session.status, 'finalizeSession');
     }

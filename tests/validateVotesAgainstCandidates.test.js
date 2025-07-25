@@ -148,6 +148,31 @@ describe('validateVotesAgainstCandidates', () => {
         message: 'Unexpected option found in votes',
       });
     });
+
+    it('should pass if votes and candidates exactly match expected options', () => {
+      const votes = [
+        { candidateId: 'Definite callback', count: 10 },
+        { candidateId: 'Maybe callback', count: 4 },
+        { candidateId: 'No callback', count: 5 },
+        { candidateId: 'Abstain', count: 5 },
+      ];
+
+      const candidates = [
+        'Definite callback',
+        'Maybe callback',
+        'Abstain',
+        'No callback',
+      ];
+
+      const expectedOptions = [
+        'Definite callback',
+        'Maybe callback',
+        'No callback',
+        'Abstain'
+      ];
+
+      expect(() => validateVotesAgainstCandidates(votes, candidates, expectedOptions)).not.toThrow();
+    });
   });
 
   describe('when candidates are declared as people', () => {
@@ -187,6 +212,19 @@ describe('validateVotesAgainstCandidates', () => {
       const candidates = ['Alice', 'Connor'];
 
       expect(() => validateVotesAgainstCandidates(votes, candidates)).toThrow(VoteCandidateValidationError);
+    });
+
+    it('should pass if votes and candidates exactly match', () => {
+      const votes = [
+        { candidateId: 'Alice', count: 10 },
+        { candidateId: 'Bob', count: 4 },
+        { candidateId: 'Connor', count: 4 },
+      ];
+
+      const candidates = ['Alice', 'Bob', 'Connor'];
+
+      expect(() => validateVotesAgainstCandidates(votes, candidates)).not.toThrow();
+
     });
   });
 });
