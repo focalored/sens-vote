@@ -1,10 +1,14 @@
-# Sens-Vote: Voting Tool for Sens A cappella
+# Sens-Vote: Voting Workflow Automation Engine
 
-This repository contains the backend service for Sens-Vote, a workflow-based voting platform built to streamline in-person elections in my college a cappella group. The app uses state control and a rule-based strategy engine to automate multi-round sessions, and provides a simple interface for admin access to voting history on the go.
+This repository contains the backend service for Sens-Vote, a workflow-based voting app built to streamline live in-person elections in my college a cappella group. The app uses a rule-based Strategy pattern and a simple state machine to automate round progression and result calculation for 4 different variations of elections (membership auditions - initial, membership auditions - callback, solo auditions, and exec role elections). It also enables the implementation of a simple frontend interface for admin access to voting history on the go.
 
-## Architecture: High-Level Overview
+## Architecture
 
+For more info on this project's architecture, see [ARCHITECTURE.MD](docs/ARCHITECTURE.md).
 
+## Testing
+
+For info on this project's testing principles, see [TESTING.md](docs/TESTING.md).
 
 ## Changelog
 
