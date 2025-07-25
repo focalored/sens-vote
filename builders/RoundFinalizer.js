@@ -16,9 +16,6 @@ class RoundFinalizer {
   }
 
   finalizeRound(votes) {
-    const expectedOptions = this.strategy.constructor.expectedOptions || null;
-    validateVotesAgainstCandidates(votes, this.currentRound.candidates, expectedOptions)
-
     const { result, warnings } = this.strategy.getResult(votes, {
       voterCount: this.voterCount,
       roundNumber: this.currentRound.roundNumber,

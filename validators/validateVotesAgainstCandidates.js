@@ -1,4 +1,4 @@
-const VoteCandidateValidationError = require('../errors/VoteCandidateValidationError');
+const { VoteCandidateValidationError } = require('../errors');
 
 function validateVotesAgainstCandidates(votes, candidates, expectedOptions = null) {
     const candidateIds = new Set(candidates);

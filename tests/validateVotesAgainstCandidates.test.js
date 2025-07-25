@@ -1,5 +1,5 @@
 const validateVotesAgainstCandidates = require('../validators/validateVotesAgainstCandidates');
-const VoteCandidateValidationError = require('../errors/VoteCandidateValidationError');
+const { VoteCandidateValidationError } = require('../errors');
 
 describe('validateVotesAgainstCandidates', () => {
   it('should throw if there are duplicate candidates', () => {

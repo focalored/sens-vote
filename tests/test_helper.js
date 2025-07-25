@@ -17,6 +17,7 @@ const initialSessions = [
     type: null,
     configuration: null,
     initialCandidates: null,
+    roundIds: []
   },
 ];
 
@@ -54,7 +55,30 @@ const roundsInDb = async () => {
   return rounds.map((round) => JSON.parse(JSON.stringify(round)));
 };
 
-const usersInDb = async () => {};
+const normalizeSession = (session) => {
+  const json = typeof session.toJSON === 'function' ? session.toJSON() : session;
+
+  const clean = JSON.parse(JSON.stringify(json));
+
+  delete clean.id;
+  delete clean.roundIds;
+  delete clean.createdAt;
+  delete clean.updatedAt;
+
+  return clean;
+}
+
+const normalizeRound = (round) => {
+  const json = typeof round.toJSON === 'function' ? round.toJSON() : round;
+
+  const clean = JSON.parse(JSON.stringify(json));
+
+  delete clean.id;
+  delete clean.createdAt;
+  delete clean.updatedAt;
+
+  return clean;
+};
 
 module.exports = {
   initialSessions,
@@ -62,5 +86,6 @@ module.exports = {
   nonExistingRoundId,
   sessionsInDb,
   roundsInDb,
-  usersInDb,
+  normalizeSession,
+  normalizeRound,
 };

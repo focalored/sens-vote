@@ -7,14 +7,17 @@ const RoundFinalizer = require("../builders/RoundFinalizer");
 const getNextState = require("../states/sessionStateMachine");
 const guardState = require("../states/guardState");
 
+const validateProvidedCandidates = require('../validators/validateProvidedCandidates');
+const validateVotesAgainstCandidates = require('../validators/validateVotesAgainstCandidates');
+
 const {
   DomainError,
   NotFoundError,
   InvalidStateTransitionError,
-  NoInitialCandidatesError,
 } = require('../errors');
 
 const getDefaultCandidatesForStrategy = require('../utils/getDefaultCandidatesForStrategy');
+const shuffle = require('../utils/shuffle');
 
 const SoloStrategy = require("../strategies/SoloStrategy");
 const ExecStrategy = require("../strategies/ExecStrategy");
@@ -32,20 +35,8 @@ class VotingService {
   }
 
   async getRound(sessionId, roundId) {
-    const session = await this._requireSession(sessionId);
-    if (!session) {
-      throw new NotFoundError('Session not found');
-    }
+    const { round } = await this._requireSessionAndRound(sessionId, roundId);
     
-    if (!session.roundIds.includes(roundId)) {
-      throw new DomainError('Round does not belong to this session');
-    }
-
-    const round = await Round.findById(roundId);
-    if (!round) {
-      throw new NotFoundError('Round not found');
-    }
-
     return round;
   }
 
@@ -55,10 +46,7 @@ class VotingService {
 
   async getSession(sessionId) {
     const session = await this._requireSession(sessionId);
-    if (!session) {
-      throw new NotFoundError('Session not found');
-    }
-
+    
     return session;
   }
 
@@ -81,6 +69,8 @@ class VotingService {
     
     guardState(session, "draft");
 
+    validateProvidedCandidates(candidates, 0);
+
     session.type = type;
     session.configuration = this._getConfigForType(
       type,
@@ -89,7 +79,7 @@ class VotingService {
       song,
       role,
     );
-    session.initialCandidates = this._shuffleCandidates(candidates);
+    session.initialCandidates = shuffle(candidates);
 
     const nextState = getNextState(session.status, "startSession");
     if (!nextState) {
@@ -118,11 +108,9 @@ class VotingService {
      */
     let { candidates: defaultCandidates, candidateType } = getDefaultCandidatesForStrategy(session.type);
 
-    if (previousRounds.length === 0 && !providedCandidates && !defaultCandidates) {
-      throw new NoInitialCandidatesError();
-    }
-
     providedCandidates = defaultCandidates ?? providedCandidates;
+
+    validateProvidedCandidates(providedCandidates, previousRounds.length);
 
     const initializer = new RoundInitializer({
       sessionId,
@@ -135,7 +123,7 @@ class VotingService {
     const newRound = initializer.initializeRound();
     const createdRound = await Round.create(newRound);
 
-    session.roundIds.push(createdRound._id);
+    session.roundIds.push(createdRound._id.toString());
 
     const nextState = getNextState(session.status, "advance");
     if (!nextState) {
@@ -156,9 +144,17 @@ class VotingService {
     const rounds = await Round.find({ _id: { $in: session.roundIds } }).sort({
       roundNumber: 1,
     });
+    if (rounds.length === 0) throw new NotFoundError('No rounds found for this session');
 
-    const currentRound = this._requireRound(rounds, roundId);
-    const previousRound = rounds.at(-2);
+    const currentRound = rounds.at(-1);
+    if (currentRound.id !== roundId) throw new DomainError('Round is not the latest active round');
+    const previousRound = rounds.at(-2) || null;
+
+    validateVotesAgainstCandidates(
+      votes,
+      currentRound.candidates,
+      this.strategies[session.type].constructor.expectedOptions || null
+    );
 
     const finalizer = new RoundFinalizer({
       strategy: this.strategies[session.type],
@@ -211,28 +207,20 @@ class VotingService {
    * @returns {Object} Configuration data to be stored as part of a new session.
    */
   _getConfigForType(type, voterCount, proposal, song, role) {
-    const config = {
-      solo: { voterCount, song },
-      exec: { voterCount, role },
-      callback: { voterCount, song },
-      pandahood: { voterCount, proposal, song },
-    };
+    const base = { voterCount, proposal: null, song: null, role: null };
 
-    return config[type];
-  }
-
-  /**
-   * Shuffles a list of candidates.
-   * @param {string[]} candidates - Candidates entering the first round of this voting session.
-   * @returns {string[]} A shuffleled list of the candidates.
-   */
-  _shuffleCandidates(candidates) {
-    for (let i = candidates.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+    switch (type) {
+      case 'solo':
+        return { ...base, song };
+      case 'exec':
+        return { ...base, role };
+      case 'callback':
+        return { ...base, song };
+      case 'pandahood':
+        return { ...base, proposal, song };
+      default:
+        throw new DomainError(`Invalid session type: ${type}`);
     }
-
-    return candidates;
   }
 
   async _requireSession(sessionId) {
@@ -243,12 +231,22 @@ class VotingService {
     return session;
   }
 
-  _requireRound(rounds, roundId) {
-    const round = rounds.find((r) => r.id === roundId);
-    if (!round) {
-      throw new NotFoundError('Round not found');
+  async _requireSessionAndRound(sessionId, roundId) {
+    const session = await Session.findById(sessionId);
+    if (!session) {
+      throw new NotFoundError(`Session with id ${sessionId} not found`);
     }
-    return round;
+
+    const round = await Round.findById(roundId);
+    if (!round) {
+      throw new NotFoundError(`Round with id ${roundId} not found`);
+    }
+
+    if (!session.roundIds.includes(roundId)) {
+      throw new DomainError(`Round with id ${roundId} does not belong to session with id ${sessionId}`);
+    }
+
+    return { session, round };
   }
 }
 

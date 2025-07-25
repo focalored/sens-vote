@@ -11,15 +11,21 @@ describe('advanceRoundSchema', () => {
     expect(() => advanceRoundSchema.parse(body)).not.toThrow();
   });
 
-  it('should throw if providedCandidates is null', () => {
+  it('should pass with absent input', () => {
+    const body = {};
+
+    expect(() => advanceRoundSchema.parse(body)).not.toThrow();
+  });
+
+  it('should throw if array is empty', () => {
     const body = {
-      providedCandidates: null,
+      providedCandidates: [],
     };
 
     expect(() => advanceRoundSchema.parse(body)).toThrow(ZodError);
   });
 
-  it('should throw if providedCandidates contains non-string values', () => {
+  it('should throw if array contains non-string values', () => {
     const body = {
       providedCandidates: [1, 2, 3],
     };

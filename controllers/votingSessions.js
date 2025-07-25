@@ -34,7 +34,8 @@ module.exports = (votingService) => {
     handleController(async (req, res, next) => {
       const round = await votingService.getRound(
         req.validatedParams.sessionId,
-        req.validatedParams.roundId);
+        req.validatedParams.roundId
+      );
       res.json(round);
     })
   );

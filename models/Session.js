@@ -6,7 +6,7 @@ const sessionSchema = new mongoose.Schema(
     type: String,
     configuration: Object,
     initialCandidates: [String],
-    roundIds: [mongoose.Schema.Types.ObjectId],
+    roundIds: [String],
   },
   { timestamps: true },
 );
@@ -14,6 +14,7 @@ const sessionSchema = new mongoose.Schema(
 sessionSchema.set("toJSON", {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
     delete returnedObject.__v;
   },
 });
