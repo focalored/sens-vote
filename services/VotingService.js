@@ -36,7 +36,6 @@ class VotingService {
 
   async getRound(sessionId, roundId) {
     const { round } = await this._requireSessionAndRound(sessionId, roundId);
-    
     return round;
   }
 
@@ -46,24 +45,19 @@ class VotingService {
 
   async getSession(sessionId) {
     const session = await this._requireSession(sessionId);
-    
     return session;
   }
 
   async createSession() {
     const session = await Session.create({
       status: "draft",
-      type: null,
-      configuration: null,
-      initialCandidates: null,
     });
-
     return session;
   }
 
   async startSession(
     sessionId,
-    { type, candidates, voterCount, proposal = null, song = null, role = null },
+    { type, candidates, voterCount, proposal = null, song = null, role = null }
   ) {
     const session = await this._requireSession(sessionId);
     
@@ -80,6 +74,7 @@ class VotingService {
       role,
     );
     session.initialCandidates = shuffle(candidates);
+    session.roundIds = [];
 
     const nextState = getNextState(session.status, "startSession");
     if (!nextState) {
@@ -92,7 +87,10 @@ class VotingService {
     return session;
   }
 
-  async advanceToNextRound(sessionId, providedCandidates = null) {
+  async advanceToNextRound(
+    sessionId,
+    providedCandidates = null
+  ) {
     const session = await this._requireSession(sessionId);
 
     guardState(session, "awaiting_moderator");
@@ -108,22 +106,22 @@ class VotingService {
      */
     let { candidates: defaultCandidates, candidateType } = getDefaultCandidatesForStrategy(session.type);
 
-    providedCandidates = defaultCandidates ?? providedCandidates;
+    const candidatesToUse = defaultCandidates || providedCandidates;
 
-    validateProvidedCandidates(providedCandidates, previousRounds.length);
+    validateProvidedCandidates(candidatesToUse, previousRounds.length);
 
     const initializer = new RoundInitializer({
       sessionId,
       strategy: this.strategies[session.type],
       rounds: previousRounds,
-      providedCandidates,
+      providedCandidates: candidatesToUse,
       candidateType,
     });
 
     const newRound = initializer.initializeRound();
     const createdRound = await Round.create(newRound);
 
-    session.roundIds.push(createdRound._id.toString());
+    session.roundIds.push(createdRound._id);
 
     const nextState = getNextState(session.status, "advanceRound");
     if (!nextState) {
@@ -146,18 +144,20 @@ class VotingService {
     });
     if (rounds.length === 0) throw new NotFoundError('No rounds found for this session');
 
-    const currentRound = rounds.at(-1);
+    const currentRound = rounds[rounds.length - 1];
     if (currentRound._id.toString() !== roundId) throw new DomainError('Round is not the current active round');
-    const previousRound = rounds.at(-2) || null;
+    
+    const previousRound = rounds.length > 1 ? rounds[rounds.length - 2] : null;
 
+    const strategy = this.strategies[session.type];
     validateVotesAgainstCandidates(
       votes,
       currentRound.candidates,
-      this.strategies[session.type].constructor.expectedOptions || null
+      strategy.constructor.expectedOptions || null
     );
 
     const finalizer = new RoundFinalizer({
-      strategy: this.strategies[session.type],
+      strategy,
       currentRound,
       previousRound,
       voterCount: session.configuration.voterCount,
@@ -186,7 +186,6 @@ class VotingService {
 
     guardState(session, "awaiting_moderator");
 
-    console.log(session.status);
     const nextState = getNextState(session.status, "finalizeSession");
     if (!nextState) {
       throw new InvalidStateTransitionError(session.status, 'finalizeSession');
@@ -208,17 +207,15 @@ class VotingService {
    * @returns {Object} Configuration data to be stored as part of a new session.
    */
   _getConfigForType(type, voterCount, proposal, song, role) {
-    const base = { voterCount, proposal: null, song: null, role: null };
-
     switch (type) {
       case 'solo':
-        return { ...base, song };
+        return { voterCount, song, proposal: null, role: null };
       case 'exec':
-        return { ...base, role };
+        return { voterCount, role, proposal: null, song: null };
       case 'callback':
-        return { ...base, song };
+        return { voterCount, song, proposal: null, role: null };
       case 'pandahood':
-        return { ...base, proposal, song };
+        return { voterCount, proposal, song, role: null };
       default:
         throw new DomainError(`Invalid session type: ${type}`);
     }
@@ -233,17 +230,14 @@ class VotingService {
   }
 
   async _requireSessionAndRound(sessionId, roundId) {
-    const session = await Session.findById(sessionId);
-    if (!session) {
-      throw new NotFoundError(`Session with id ${sessionId} not found`);
-    }
-
+    const session = await this._requireSession(sessionId);
     const round = await Round.findById(roundId);
+
     if (!round) {
       throw new NotFoundError(`Round with id ${roundId} not found`);
     }
 
-    if (!session.roundIds.includes(roundId)) {
+    if (!session.roundIds.some(id => id.toString() === roundId)) {
       throw new DomainError(`Round with id ${roundId} does not belong to session with id ${sessionId}`);
     }
 

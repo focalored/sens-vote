@@ -16,7 +16,7 @@
 |---------------------------------|---------------------------------------------------|-------------|
 | `ZodValidationError`            | Schema violation by request input                 | 400         |
 | `CandidateValidationError`      | Empty/duplicate names in candidate list           | 400         |
-| `VoteCandidateValidationError`  | Vote for non-existent candidate                   | 400         |
+| `VoteCandidateValidationError`  | Mismatch between votes and candidates lists       | 400         |
 | `SessionStatusError`            | Invalid service method call given session status  | 409         |
 | `InvalidStateTransitionError`   | Invalid session status transition attempt         | 409         |
 | `LogicConflictError`            | Strategy layer voting data/mode logic conflicts   | 409         |

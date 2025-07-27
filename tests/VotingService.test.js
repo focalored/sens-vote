@@ -44,9 +44,6 @@ describe('VotingService', () => {
 
       expect(Session.create).toHaveBeenCalledWith({
         status: 'draft',
-        type: null,
-        configuration: null,
-        initialCandidates: null,
       });
       expect(result).toBe(mockSession);
     });
