@@ -1,14 +1,12 @@
 const validateVotesAgainstCandidates = require('../validators/validateVotesAgainstCandidates');
+const { ValidationError } = require('../errors');
 
 class RoundFinalizer {
   constructor({ strategy, currentRound, previousRound, voterCount }) {
     if (!strategy || !currentRound || !voterCount) {
-      throw new Error("Round Finalizer: Missing required parameters");
+      throw new ValidationError("Round Finalizer: Missing required parameters");
     }
 
-    // Should current and previous rounds be assigned in service?
-    // possibly passing null as previousRound to RoundFinalizer, in case current round is 1st
-    // Or should service just feed rounds array and let RoundFinalizer find out
     this.strategy = strategy;
     this.currentRound = currentRound;
     this.previousRound = previousRound;
@@ -16,6 +14,10 @@ class RoundFinalizer {
   }
 
   finalizeRound(votes) {
+    if (!Array.isArray(votes) || votes.length === 0) {
+      throw new ValidationError('Round Finalizer: Votes must be a non-empty array');
+    }
+
     const { result, warnings } = this.strategy.getResult(votes, {
       voterCount: this.voterCount,
       roundNumber: this.currentRound.roundNumber,

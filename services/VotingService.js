@@ -11,6 +11,7 @@ const validateProvidedCandidates = require('../validators/validateProvidedCandid
 const validateVotesAgainstCandidates = require('../validators/validateVotesAgainstCandidates');
 
 const {
+  ValidationError,
   DomainError,
   NotFoundError,
   InvalidStateTransitionError,
@@ -147,7 +148,7 @@ class VotingService {
     const currentRound = rounds[rounds.length - 1];
     if (currentRound._id.toString() !== roundId) throw new DomainError('Round is not the current active round');
     
-    const previousRound = rounds.length > 1 ? rounds[rounds.length - 2] : null;
+    const previousRound = rounds.at(-2);
 
     const strategy = this.strategies[session.type];
     validateVotesAgainstCandidates(
@@ -217,7 +218,7 @@ class VotingService {
       case 'pandahood':
         return { voterCount, proposal, song, role: null };
       default:
-        throw new DomainError(`Invalid session type: ${type}`);
+        throw new ValidationError(`Invalid session type: ${type}`);
     }
   }
 
