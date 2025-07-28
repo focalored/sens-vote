@@ -4,7 +4,7 @@ This repository contains the backend service for Sens-Vote, a workflow-based vot
 
 ## Architecture
 
-For more info on this project's architecture, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
+For more info on this project's architecture, see [Architecture.md](docs/Architecture.md).
 
 ## Testing
 

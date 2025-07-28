@@ -1,5 +1,5 @@
-const zodMiddleware = require('../utils/zodMiddleware');
-const startSessionSchema = require('../schemas/startSessionSchema');
+const zodMiddleware = require('../../../utils/zodMiddleware');
+const startSessionSchema = require('../../../schemas/startSessionSchema');
 
 describe('zodMiddleware', () => {
   let req, res, next;

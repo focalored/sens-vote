@@ -1,4 +1,4 @@
-const PandahoodStrategy = require('../strategies/PandahoodStrategy');
+const PandahoodStrategy = require('../../../strategies/PandahoodStrategy');
 
 describe('PandahoodStrategy', () => {
   let strategy;

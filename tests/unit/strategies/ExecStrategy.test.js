@@ -1,4 +1,4 @@
-const ExecStrategy = require('../strategies/ExecStrategy');
+const ExecStrategy = require('../../../strategies/ExecStrategy');
 
 describe('ExecStrategy', () => {
   let strategy;

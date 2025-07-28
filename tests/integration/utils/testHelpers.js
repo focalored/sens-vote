@@ -1,5 +1,5 @@
-const Session = require("../models/Session");
-const Round = require("../models/Round");
+const Session = require("../../../models/Session");
+const Round = require("../../../models/Round");
 
 const initialSessions = [
   {

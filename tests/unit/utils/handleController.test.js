@@ -1,4 +1,4 @@
-const handleController = require('../utils/handleController');
+const handleController = require('../../../utils/handleController');
 
 describe('handleController', () => {
   it('should call next with error if server throws', async () => {

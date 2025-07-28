@@ -1,5 +1,5 @@
-const validateProvidedCandidates = require('../validators/validateProvidedCandidates');
-const { CandidateValidationError } = require('../errors');
+const validateProvidedCandidates = require('../../../validators/validateProvidedCandidates');
+const { CandidateValidationError } = require('../../../errors');
 
 describe('validateProvidedCandidates', () => {
   it('should throw if no candidates provided for 1st round', () => {

@@ -1,4 +1,4 @@
-const BaseStrategy = require('../strategies/BaseStrategy');
+const BaseStrategy = require('../../../strategies/BaseStrategy');
 
 describe('BaseStrategy', () => {
   let strategy;

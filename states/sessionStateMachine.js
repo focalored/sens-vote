@@ -8,7 +8,7 @@ const VALID_TRANSITIONS = {
 };
 
 const getNextState = (current, action) => {
-  const transitions = VALID_TRANSITIONS[current] || {};
+  const transitions = VALID_TRANSITIONS[current];
   return transitions[action] || null;
 };
 

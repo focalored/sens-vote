@@ -1,4 +1,4 @@
-const CallbackStrategy = require('../strategies/CallbackStrategy');
+const CallbackStrategy = require('../../../strategies/CallbackStrategy');
 
 describe('CallbackStrategy', () => {
   let strategy;

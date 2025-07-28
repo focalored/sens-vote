@@ -1,4 +1,4 @@
-const shuffle = require('../utils/shuffle');
+const shuffle = require('../../../utils/shuffle');
 
 describe('shuffle', () => {
   it('should return a permutation of the original array', () => {

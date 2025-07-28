@@ -1,5 +1,5 @@
-const advanceRoundSchema = require('../schemas/advanceRoundSchema');
-const zodMiddleware = require('../utils/zodMiddleware');
+const advanceRoundSchema = require('../../../schemas/advanceRoundSchema');
+const zodMiddleware = require('../../../utils/zodMiddleware');
 const { ZodError } = require('zod');
 
 describe('advanceRoundSchema', () => {

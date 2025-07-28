@@ -1,5 +1,5 @@
-const submitVotesSchema = require('../schemas/submitVotesSchema');
-const zodMiddleware = require('../utils/zodMiddleware');
+const submitVotesSchema = require('../../../schemas/submitVotesSchema');
+const zodMiddleware = require('../../../utils/zodMiddleware');
 const { ZodError } = require('zod');
 
 describe('submitVotesSchema', () => {

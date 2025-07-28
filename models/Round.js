@@ -1,5 +1,12 @@
 const { Schema, model, Document, Types } = require('mongoose');
 
+const metadataSchema = new Schema({
+  candidateType: {
+    type: String,
+    enum: ['names', 'options'],
+  },
+}, { _id: false });
+
 const roundResultSchema = new Schema({
   type: { type: String, enum: ['solo', 'exec', 'callback', 'pandahood'], required: true },
   winners: {
@@ -14,36 +21,25 @@ const roundResultSchema = new Schema({
 const roundSchema = new Schema({
   sessionId: { type: Schema.Types.ObjectId, ref: 'Session', required: true },
   roundNumber: { type: Number, required: true },
-  candidates: [{ type: String }],
-  metadata: {
-    candidateType: {
-      type: String,
-      enum: ['names', 'options'],
-    }
-  },
+  candidates: { type: [String] },
+  metadata: { type: metadataSchema, default: null },
   evalMode: { type: String, enum: ['full', 'understudy_only'], required: true },
   votes: [
     {
       candidateId: String,
       count: Number,
+      _id: false,
     },
   ],
-  result: { type: roundResultSchema, required: false },
+  result: { type: roundResultSchema, required: false, _id: false },
 }, { timestamps: true });
 
 roundSchema.set("toJSON", {
   transform: (_doc, ret) => {
+    ret.sessionId = ret.sessionId.toString();
     ret.id = ret._id.toString();
     delete ret._id;
     delete ret.__v;
-
-    if (ret.votes) {
-      ret.votes = ret.votes.map(({ _id, ...vote }) => vote);
-    }
-
-    if (ret.sessionId && typeof ret.sessionId === 'object') {
-      ret.sessionId = ret.sessionId.toString();
-    }
   },
 });
 

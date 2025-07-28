@@ -1,5 +1,5 @@
-const RoundFinalizer = require('../builders/RoundFinalizer');
-const { ValidationError } = require('../errors');
+const RoundFinalizer = require('../../../builders/RoundFinalizer');
+const { ValidationError } = require('../../../errors');
 
 describe('RoundFinalizer', () => {
   let mockStrategy = {

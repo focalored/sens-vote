@@ -1,21 +1,21 @@
-const VotingService = require('../services/VotingService');
-const Session = require('../models/Session');
-const Round = require('../models/Round');
-const RoundInitializer = require('../builders/RoundInitializer');
-const RoundFinalizer = require('../builders/RoundFinalizer');
+const VotingService = require('../../../services/VotingService');
+const Session = require('../../../models/Session');
+const Round = require('../../../models/Round');
+const RoundInitializer = require('../../../builders/RoundInitializer');
+const RoundFinalizer = require('../../../builders/RoundFinalizer');
 
-const getNextState = require('../states/sessionStateMachine');
+const getNextState = require('../../../states/sessionStateMachine');
 
-const shuffle = require('../utils/shuffle');
-const getDefaultCandidatesForStrategy = require('../utils/getDefaultCandidatesForStrategy');
+const shuffle = require('../../../utils/shuffle');
+const getDefaultCandidatesForStrategy = require('../../../utils/getDefaultCandidatesForStrategy');
 
-jest.mock('../models/Session');
-jest.mock('../models/Round');
-jest.mock('../builders/RoundInitializer');
-jest.mock('../builders/RoundFinalizer');
-jest.mock('../states/sessionStateMachine');
-jest.mock('../utils/shuffle');
-jest.mock('../utils/getDefaultCandidatesForStrategy');
+jest.mock('../../../models/Session');
+jest.mock('../../../models/Round');
+jest.mock('../../../builders/RoundInitializer');
+jest.mock('../../../builders/RoundFinalizer');
+jest.mock('../../../states/sessionStateMachine');
+jest.mock('../../../utils/shuffle');
+jest.mock('../../../utils/getDefaultCandidatesForStrategy');
 
 const {
   SessionStatusError,
@@ -25,7 +25,7 @@ const {
   VoteCandidateValidationError,
   NotFoundError,
   InvalidStateTransitionError,
-} = require('../errors');
+} = require('../../../errors');
 
 describe('VotingService', () => {
   let votingService;

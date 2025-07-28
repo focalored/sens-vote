@@ -1,15 +1,15 @@
-const logger = require('../utils/logger');
+const logger = require('../../../utils/logger');
 const {
   requestLogger,
   unknownEndpoint,
   errorHandler,
-} = require('../utils/middleware');
+} = require('../../../utils/middleware');
 
 const {
   DomainError,
   ValidationError,
   NotFoundError,
-} = require('../errors');
+} = require('../../../errors');
 
 describe('requestLogger', () => {
   let mockReq = {};

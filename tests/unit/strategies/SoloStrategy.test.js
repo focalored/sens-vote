@@ -1,5 +1,5 @@
-const SoloStrategy = require("../strategies/SoloStrategy");
-const LogicConflictError = require('../errors/LogicConflictError');
+const SoloStrategy = require("../../../strategies/SoloStrategy");
+const LogicConflictError = require('../../../errors/LogicConflictError');
 
 describe('SoloStrategy', () => {
   let strategy;

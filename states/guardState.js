@@ -1,4 +1,4 @@
-const SessionStatusError = require('../errors/SessionStatusError');
+const { SessionStatusError } = require('../errors');
 
 const guardState = (session, expected) => {
   if (session.status !== expected) {

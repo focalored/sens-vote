@@ -12,8 +12,8 @@ const sessionSchema = new Schema(
     status: { type: String, enum: ['draft', 'awaiting_moderator', 'awaiting_votes', 'complete'], required: true },
     type: { type: String, enum: ['solo', 'exec', 'callback', 'pandahood'], default: null, required: false },
     configuration: { type: sessionConfigurationSchema, default: null, required: false },
-    initialCandidates: [{ type: String }],
-    roundIds: [{ type: Schema.Types.ObjectId, ref: 'Round' }],
+    initialCandidates: { type: [String], default: [] },
+    roundIds: { type: [Schema.Types.ObjectId], ref: 'Round', default: [] },
   },
   { timestamps: true },
 );
