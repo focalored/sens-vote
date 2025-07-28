@@ -4,7 +4,10 @@ This repository contains the backend service for Sens-Vote, a workflow-based vot
 
 ## Tech Stack
 
-![nodejs](https://github.com/user-attachments/assets/2fb20758-1b66-44dd-80e2-09f98d236bd0) ![express](https://github.com/user-attachments/assets/9effd1b7-26cc-4073-bf7d-da93b1337ad2) ![mongodb](https://github.com/user-attachments/assets/022bc7bd-67c6-4007-ab54-dc0165b75c35) ![jest](https://github.com/user-attachments/assets/aa27ac7d-11f9-43e5-8d9c-08c95f76902f)
+<img width="163" height="100" alt="Image" src="https://github.com/user-attachments/assets/2fb20758-1b66-44dd-80e2-09f98d236bd0" />
+<img width="100" height="100" alt="Image" src="https://github.com/user-attachments/assets/aa27ac7d-11f9-43e5-8d9c-08c95f76902f" />
+<img width="393" height="100" alt="Image" src="https://github.com/user-attachments/assets/022bc7bd-67c6-4007-ab54-dc0165b75c35" />
+<img width="100" height="100" alt="Image" src="https://github.com/user-attachments/assets/9effd1b7-26cc-4073-bf7d-da93b1337ad2" />
 
 ## Architecture
 
