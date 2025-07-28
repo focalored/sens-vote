@@ -4,11 +4,19 @@ This repository contains the backend service for Sens-Vote, a workflow-based vot
 
 ## Architecture
 
+Workflow-driven backend with:
+- Controller validation (Zod)
+- Service orchestration
+- State machine enforcement
+- Strategy pattern implementation of domain logic algorithms
+- Builder-constructed domain objects
+- Full test coverage in core business logic modules
+
 For more info on this project's architecture, see [Architecture.md](docs/Architecture.md).
 
 ## Testing
 
-For info on this project's testing principles, see [TESTING.md](docs/TESTING.md).
+For info on this project's testing principles, see [Testing.md](docs/Testing.md).
 
 ## Changelog
 
