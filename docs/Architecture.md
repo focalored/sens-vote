@@ -14,17 +14,17 @@
 
 1. Controller:
     - Raw string[] from HTTP request
-    - Validated with Zod (length, type)
+    - Validated with Zod (nonempty, string values)
 
 2. Service:
     - Semantic validation (duplicates, empty values)
     - Shuffled for fairness
-    - Stores initial candidates in session.initialCandidates
+    - Initial candidates stored in session.initialCandidates
     - In callback & pandahood rounds, replaced with 'Yes'/'No' buckets
 
 3. RoundInitializer:
-    - Uses strategy-suggested candidates if not provided in subsequent rounds
-    - Stores round-specific candidates in round.candidates
+    - Strategy-suggested if not provided in subsequent rounds
+    - Round-specific candidates stored in round.candidates
     - Sets candidateType metadata
 
 4. Strategy:

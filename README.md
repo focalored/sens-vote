@@ -2,25 +2,53 @@
 
 This repository contains the backend service for Sens-Vote, a workflow-based voting app built to streamline live in-person elections in my college a cappella group. The app uses a rule-based Strategy pattern and a simple state machine to automate round progression and result calculation for 4 different variations of elections (membership auditions - initial, membership auditions - callback, solo auditions, and exec role elections). It also enables the implementation of a simple frontend interface for admin access to voting history on the go.
 
+## Tech Stack
+
+![nodejs](https://github.com/user-attachments/assets/2fb20758-1b66-44dd-80e2-09f98d236bd0) ![express](https://github.com/user-attachments/assets/9effd1b7-26cc-4073-bf7d-da93b1337ad2) ![mongodb](https://github.com/user-attachments/assets/022bc7bd-67c6-4007-ab54-dc0165b75c35) ![jest](https://github.com/user-attachments/assets/aa27ac7d-11f9-43e5-8d9c-08c95f76902f)
+
 ## Architecture
 
 Workflow-driven backend with:
 - Controller validation (Zod)
 - Service orchestration
 - State machine enforcement
-- Strategy pattern implementation of domain logic algorithms
+- Strategy pattern implementation
 - Builder-constructed domain objects
 - Full test coverage in core business logic modules
 
 For more info on this project's architecture, see [Architecture.md](docs/Architecture.md).
 
+## Challenges
+
 ## Testing
 
-For info on this project's testing principles, see [Testing.md](docs/Testing.md).
+### Testing Principles
+
+1. Zod handles structure at the controller layer, custom validators handle semantics at the service layer.
+2. Each error type represents a rule violation for some data.
+3. Service focuses on workflow logic, so it is tested on state transitions and validation edges.
+
+### Lessons Learned
+
+- By dividing input validation across different layers of the backend, I was able to write tests that have good coverage with little overlap. For example, I could focus solely on semantic validation when writing service tests, such as whether the provided candidates list has duplicate names. No need to worry about the shape or type of the data object, as that has been handled by Zod middleware before it was passed to the service.
+
+- Writing custom error classes can be an informal way of creating "contracts" for state transitions and data objects, each corresponding to a certain violation of what's expected. `CandidateValidationError` would signal that the provided candidates list before starting a round or session contains duplicate/empty names.
+
+### Errors
+
+| Error Class                     | Trigger Condition                                 | HTTP Status |
+|---------------------------------|---------------------------------------------------|-------------|
+| `ZodValidationError`            | Schema violation by request input                 | 400         |
+| `CandidateValidationError`      | Empty/duplicate names in candidate list           | 400         |
+| `VoteCandidateValidationError`  | Mismatch between votes and candidates lists       | 400         |
+| `SessionStatusError`            | Invalid service method call given session status  | 409         |
+| `InvalidStateTransitionError`   | Invalid session status transition attempt         | 409         |
+| `LogicConflictError`            | Strategy layer voting data/mode logic conflicts   | 409         |
+| `NotFoundError`                 | Session/Round database query returns null         | 404         |
 
 ## Changelog
 
-### June 2025
+### July 2025
 
 - **7/11/2025:** Created voting session schema and connected to MongoDB!
 - **7/13/2025:** Built `votingSessions` router, `VotingService` class, and `SoloStrategy` class.

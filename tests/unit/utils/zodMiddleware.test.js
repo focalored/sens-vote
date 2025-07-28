@@ -1,5 +1,7 @@
+const mongoose = require('mongoose');
 const zodMiddleware = require('../../../utils/zodMiddleware');
 const startSessionSchema = require('../../../schemas/startSessionSchema');
+const { sessionAndRoundIdParams } = require('../../../schemas/objectIdSchema');
 
 describe('zodMiddleware', () => {
   let req, res, next;
@@ -10,7 +12,25 @@ describe('zodMiddleware', () => {
     next = jest.fn();
   });
 
-  it('should call next() on valid input', () => {
+  it('should call next() when both params and body passed', () => {
+    req.body = {
+      type: 'solo',
+      candidates: ['Alice'],
+      voterCount: 1,
+    };
+    req.params = {
+      sessionId: new mongoose.Types.ObjectId().toString(),
+      roundId: new mongoose.Types.ObjectId().toString(),
+    }
+
+    const middleware = zodMiddleware({ body: startSessionSchema, params: sessionAndRoundIdParams });
+
+    middleware(req, res, next);
+
+    expect(next).toHaveBeenCalledWith();
+  });
+
+  it('should call next() when only body passed', () => {
     req.body = {
       type: 'solo',
       candidates: ['Alice'],
@@ -18,6 +38,19 @@ describe('zodMiddleware', () => {
     };
 
     const middleware = zodMiddleware({ body: startSessionSchema });
+
+    middleware(req, res, next);
+
+    expect(next).toHaveBeenCalledWith();
+  });
+
+  it('should call next() when only params passed', () => {
+    req.params = {
+      sessionId: new mongoose.Types.ObjectId().toString(),
+      roundId: new mongoose.Types.ObjectId().toString(),
+    }
+
+    const middleware = zodMiddleware({ params: sessionAndRoundIdParams });
 
     middleware(req, res, next);
 
