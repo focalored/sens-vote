@@ -13,26 +13,26 @@
 ### Candidates Transformation
 
 1. Controller:
-  - Raw string[] from HTTP request
-  - Validated with Zod (length, type)
+    - Raw string[] from HTTP request
+    - Validated with Zod (length, type)
 
 2. Service:
-  - Semantic validation (duplicates, empty values)
-  - Shuffled for fairness
-  - Stores initial candidates in session.initialCandidates
-  - In callback & pandahood rounds, replaced with 'Yes'/'No' buckets
+    - Semantic validation (duplicates, empty values)
+    - Shuffled for fairness
+    - Stores initial candidates in session.initialCandidates
+    - In callback & pandahood rounds, replaced with 'Yes'/'No' buckets
 
 3. RoundInitializer:
-  - Uses strategy-suggested candidates if not provided in subsequent rounds
-  - Stores round-specific candidates in round.candidates
-  - Sets candidateType metadata
+    - Uses strategy-suggested candidates if not provided in subsequent rounds
+    - Stores round-specific candidates in round.candidates
+    - Sets candidateType metadata
 
 4. Strategy:
-  - Previous round candidates ranked then filtered based on evalMode
-  - Winning candidates returned
+    - Previous round candidates ranked then filtered based on evalMode
+    - Winning candidates returned
 
 5. RoundFinalizer:
-  - Winning candidates stored in round.result
+    - Winning candidates stored in round.result
 
 ### Votes Transformation
 
