@@ -31,7 +31,7 @@ class RoundFinalizer {
 
     return {
       ...this.currentRound,
-      votes: votes,
+      votes,
       result,
     };
   }

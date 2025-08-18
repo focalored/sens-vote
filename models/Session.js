@@ -9,6 +9,7 @@ const sessionConfigurationSchema = new Schema({
 
 const sessionSchema = new Schema(
   {
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     status: { type: String, enum: ['draft', 'awaiting_moderator', 'awaiting_votes', 'complete'], required: true },
     type: { type: String, enum: ['solo', 'exec', 'callback', 'pandahood'], default: null, required: false },
     configuration: { type: sessionConfigurationSchema, default: null, required: false },
@@ -21,6 +22,7 @@ const sessionSchema = new Schema(
 sessionSchema.set("toJSON", {
   transform: (_doc, ret) => {
     ret.id = ret._id.toString();
+    ret.user = ret.user.toString();
     delete ret._id;
     delete ret.__v;
 

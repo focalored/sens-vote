@@ -1,17 +1,15 @@
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+const { MONGODB_URI } = require('../../../utils/config');
 const Round = require('../../../models/Round');
 
 let mongoServer;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  await mongoose.connect(mongoServer.getUri(), { useNewUrlParser: true, useUnifiedTopology: true });
+  await mongoose.connect(MONGODB_URI);
 });
 
 afterAll(async () => {
   await mongoose.disconnect();
-  await mongoServer.stop();
 });
 
 beforeEach(async () => {

@@ -6,6 +6,7 @@ const {
 } = require('../../../utils/middleware');
 
 const {
+  AuthError,
   DomainError,
   ValidationError,
   NotFoundError,
@@ -73,7 +74,7 @@ describe('errorHandler', () => {
     await errorHandler(err, mockReq, mockRes, mockNext);
 
     expect(mockRes.status).toHaveBeenCalledWith(400);
-    expect(mockRes.json).toHaveBeenCalledWith({ error: 'Malformatted session ID'});
+    expect(mockRes.json).toHaveBeenCalledWith({ error: 'Malformatted ID'});
   });
 
   it('should return with status 400 if ValidationError', async () => {
@@ -103,11 +104,12 @@ describe('errorHandler', () => {
     expect(mockRes.json).toHaveBeenCalledWith({ error: 'boo'});
   });
 
-  it('should call next with error if unknown error', async () => {
-    const err = new Error('Unknown Error');
+  it('should return with status 401 if AuthError', async () => {
+    const err = new AuthError('boo');
 
     await errorHandler(err, mockReq, mockRes, mockNext);
 
-    expect(mockNext).toHaveBeenCalledWith(err);
+    expect(mockRes.status).toHaveBeenCalledWith(401);
+    expect(mockRes.json).toHaveBeenCalledWith({ error: 'boo'});
   });
 });

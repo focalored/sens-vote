@@ -41,7 +41,7 @@ class SoloStrategy extends BaseStrategy {
     { voterCount, roundNumber, previousRound, evalMode },
   ) {
     const warnings = BaseStrategy.checkTotalVotes(votes, voterCount);
-
+    
     const sortedVotes = this._getSortedVotes(votes);
 
     const [first, second, ...rest] = sortedVotes;
@@ -86,7 +86,7 @@ class SoloStrategy extends BaseStrategy {
 
     const soloist = isThresholdMet ? first.candidateId : null;
     const understudy =
-      soloist && (!rest || second.count > rest[0].count) ? second.candidateId : null;
+      soloist && (rest.length === 0 || second.count > rest[0].count) ? second.candidateId : null;
 
     result = {
       type: 'solo',

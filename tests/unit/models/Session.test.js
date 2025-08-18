@@ -1,17 +1,17 @@
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+const { MONGODB_URI } = require('../../../utils/config');
 const Session = require('../../../models/Session');
+
+const USER_ID = new mongoose.Types.ObjectId();
 
 let mongoServer;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  await mongoose.connect(mongoServer.getUri(), { useNewUrlParser: true, useUnifiedTopology: true });
+  await mongoose.connect(MONGODB_URI);
 });
 
 afterAll(async () => {
   await mongoose.disconnect();
-  await mongoServer.stop();
 });
 
 beforeEach(async () => {
@@ -21,6 +21,7 @@ beforeEach(async () => {
 describe('Session Model', () => {
   it('should create a session with valid data', async () => {
     const sessionData = {
+      user: USER_ID,
       status: 'awaiting_moderator',
       type: 'pandahood',
       configuration: {
@@ -35,6 +36,7 @@ describe('Session Model', () => {
     const session = await Session.create(sessionData);
     const json = session.toJSON();
 
+    expect(session.user).toBe(USER_ID);
     expect(json.status).toBe('awaiting_moderator');
     expect(json.type).toBe('pandahood');
     expect(json.configuration).toStrictEqual({
@@ -48,10 +50,11 @@ describe('Session Model', () => {
   });
 
   it('should allow absence for optional fields', async () => {
-    const sessionData = { status: 'draft' };
+    const sessionData = { user: USER_ID, status: 'draft' };
 
     const session = await Session.create(sessionData);
 
+    expect(session.user).toBe(USER_ID);
     expect(session.status).toBe('draft');
     expect(session.type).toBe(null);
     expect(session.configuration).toBe(null);
@@ -61,11 +64,12 @@ describe('Session Model', () => {
   });
 
   it('should allow null values for optional fields', async () => {
-    const sessionData = { status: 'draft', roundIds: null };
+    const sessionData = { user: USER_ID, status: 'draft', roundIds: null };
 
     const session = await Session.create(sessionData);
     const json = session.toJSON();
 
+    expect(session.user).toBe(USER_ID);
     expect(session.status).toBe('draft');
     expect(session.type).toBe(null);
     expect(session.configuration).toBe(null);
@@ -81,6 +85,7 @@ describe('Session Model', () => {
 
   it('should convert ObjectIds to strings in toJSON', async () => {
     const sessionData = {
+      user: USER_ID,
       status: 'awaiting_moderator',
       type: 'pandahood',
       configuration: {
@@ -95,6 +100,8 @@ describe('Session Model', () => {
     const session = await Session.create(sessionData);
     const json = session.toJSON();
 
+    expect(session.user).toBe(USER_ID);
+    expect(json.user).toBe(USER_ID.toString());
     expect(json.id).toBeDefined();
     expect(json._id).toBeUndefined();
     expect(json.__v).toBeUndefined();

@@ -1,5 +1,6 @@
 const Session = require("../models/Session");
 const Round = require("../models/Round");
+const mongoose = require('mongoose');
 
 const RoundInitializer = require("../builders/RoundInitializer");
 const RoundFinalizer = require("../builders/RoundFinalizer");
@@ -35,22 +36,25 @@ class VotingService {
     };
   }
 
-  async getRound(sessionId, roundId) {
-    const { round } = await this._requireSessionAndRound(sessionId, roundId);
+  async getRound(sessionId, roundId, userId) {
+    const { session, round } = await this._requireSessionAndRound(sessionId, roundId);
+    this._checkOwnership(session, userId);
     return round;
   }
 
-  async getSessions() {
-    return Session.find({});
+  async getSessions(userId) {
+    return Session.find({ user: userId });
   }
 
-  async getSession(sessionId) {
+  async getSession(sessionId, userId) {
     const session = await this._requireSession(sessionId);
+    this._checkOwnership(session, userId);
     return session;
   }
 
-  async createSession() {
+  async createSession(userId) {
     const session = await Session.create({
+      user: userId,
       status: "draft",
     });
     return session;
@@ -58,12 +62,13 @@ class VotingService {
 
   async startSession(
     sessionId,
+    userId,
     { type, candidates, voterCount, proposal = null, song = null, role = null }
   ) {
     const session = await this._requireSession(sessionId);
+    this._checkOwnership(session, userId);
     
     guardState(session, "draft");
-
     validateProvidedCandidates(candidates, 0);
 
     session.type = type;
@@ -88,12 +93,10 @@ class VotingService {
     return session;
   }
 
-  async advanceToNextRound(
-    sessionId,
-    providedCandidates = null
-  ) {
+  async advanceToNextRound(sessionId, userId, providedCandidates = null) {
     const session = await this._requireSession(sessionId);
-
+    this._checkOwnership(session, userId);
+    
     guardState(session, "awaiting_moderator");
 
     const previousRounds = await Round.find({
@@ -135,18 +138,18 @@ class VotingService {
     return createdRound;
   }
 
-  async submitVotes(sessionId, roundId, votes) {
-    const session = await this._requireSession(sessionId);
+  async submitVotes(sessionId, roundId, userId, votes) {
+    const { session, round } = await this._requireSessionAndRound(sessionId, roundId);
+    this._checkOwnership(session, userId);
 
     guardState(session, "awaiting_votes");
 
-    const rounds = await Round.find({ _id: { $in: session.roundIds } }).sort({
-      roundNumber: 1,
-    });
-    if (rounds.length === 0) throw new NotFoundError('No rounds found for this session');
+    const rounds = await Round
+      .find({ _id: { $in: session.roundIds } })
+      .sort({ roundNumber: 1 });
 
     const currentRound = rounds[rounds.length - 1];
-    if (currentRound._id.toString() !== roundId) throw new DomainError('Round is not the current active round');
+    if (currentRound._id.toString() !== roundId) throw new DomainError('Requested round is not currently active');
     
     const previousRound = rounds.at(-2);
 
@@ -182,8 +185,9 @@ class VotingService {
     return currentRound;
   }
 
-  async finalizeSession(sessionId) {
+  async finalizeSession(sessionId, userId) {
     const session = await this._requireSession(sessionId);
+    this._checkOwnership(session, userId);
 
     guardState(session, "awaiting_moderator");
 
@@ -195,6 +199,18 @@ class VotingService {
     session.status = nextState;
     await session.save();
     return session;
+  }
+
+  _checkOwnership(session, userId) {
+    if (session.user instanceof mongoose.Types.ObjectId) {
+      if (session.user.toString() !== userId) {
+        throw new DomainError('User does not have access to this session');
+      }
+    } else {
+      if (session.user !== userId) {
+        throw new DomainError('User does not have access to this session');
+      }
+    }   
   }
 
   /**
@@ -224,9 +240,11 @@ class VotingService {
 
   async _requireSession(sessionId) {
     const session = await Session.findById(sessionId);
+    
     if (!session) {
       throw new NotFoundError('Session not found');
     }
+
     return session;
   }
 

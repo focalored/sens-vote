@@ -2,6 +2,7 @@ const {
   ValidationError,
   DomainError,
   NotFoundError,
+  AuthError,
 } = require('../errors');
 
 const logger = require("./logger");
@@ -20,9 +21,12 @@ const unknownEndpoint = (req, res) => {
 
 const errorHandler = (error, req, res, next) => {
   logger.error(error.message);
+  if (process.env.NODE_ENV !== "production") {
+    logger.error(error.stack);
+  }
   
   if (error.name === 'CastError') {
-    return res.status(400).json({ error: 'Malformatted session ID' });
+    return res.status(400).json({ error: 'Malformatted ID' });
   }
   if (error instanceof ValidationError) {
     return res.status(400).json({ error: error.errors || error.message });
@@ -33,8 +37,14 @@ const errorHandler = (error, req, res, next) => {
   if (error instanceof NotFoundError) {
     return res.status(404).json({ error: error.message });
   }
+  if (error instanceof AuthError) {
+    return res.status(401).json({ error: error.message });
+  }
+  if (error.name === 'MongoServerError' && error.code === 11000) {
+    return res.status(400).json({ error: 'Duplicate key error: `username` must be unique' });
+  }
 
-  next(error);
+  res.status(500).json({ error: "Internal server error" });
 };
 
 module.exports = {

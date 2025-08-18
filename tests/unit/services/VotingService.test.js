@@ -9,6 +9,8 @@ const getNextState = require('../../../states/sessionStateMachine');
 const shuffle = require('../../../utils/shuffle');
 const getDefaultCandidatesForStrategy = require('../../../utils/getDefaultCandidatesForStrategy');
 
+const USER_ID = 'user-123';
+
 jest.mock('../../../models/Session');
 jest.mock('../../../models/Round');
 jest.mock('../../../builders/RoundInitializer');
@@ -44,6 +46,7 @@ describe('VotingService', () => {
       jest.clearAllMocks();
 
       mockSession = {
+        user: USER_ID,
         _id: SESSION_ID,
         status: 'draft',
         roundIds: [ROUND_ID],
@@ -60,28 +63,28 @@ describe('VotingService', () => {
     });
 
     it('should return the requested round', async () => {
-      const result = await votingService.getRound(SESSION_ID, ROUND_ID);
+      const result = await votingService.getRound(SESSION_ID, ROUND_ID, USER_ID);
       expect(result).toStrictEqual(mockRound);
     });
 
     it('should throw if session not found', async () => {      
       Session.findById.mockResolvedValue(null);
-      await expect(votingService.getRound(SESSION_ID, ROUND_ID)).rejects.toThrow(NotFoundError);
+      await expect(votingService.getRound(SESSION_ID, ROUND_ID, USER_ID)).rejects.toThrow(NotFoundError);
     });
 
     it('should throw if session found but round not found', async () => {
       Round.findById.mockResolvedValue(null);
-      await expect(votingService.getRound(SESSION_ID, ROUND_ID)).rejects.toThrow(NotFoundError);
+      await expect(votingService.getRound(SESSION_ID, ROUND_ID, USER_ID)).rejects.toThrow(NotFoundError);
     });
 
     it('should throw if round does not belong to round', async () => {
       mockSession.roundIds = ['round-456'];
-      await expect(votingService.getRound(SESSION_ID, ROUND_ID)).rejects.toThrow(DomainError);
+      await expect(votingService.getRound(SESSION_ID, ROUND_ID, USER_ID)).rejects.toThrow(DomainError);
     });
 
     it('should throw if database call fails', async () => {
       Session.findById.mockRejectedValue(new Error('DB failure'));
-      await expect(votingService.getRound(SESSION_ID, ROUND_ID)).rejects.toThrow('DB failure');
+      await expect(votingService.getRound(SESSION_ID, ROUND_ID, USER_ID)).rejects.toThrow('DB failure');
     });
   });
 
@@ -93,6 +96,7 @@ describe('VotingService', () => {
       jest.clearAllMocks();
       
       mockSession = {
+        user: USER_ID,
         _id: SESSION_ID,
         status: 'draft',
         save: jest.fn(),
@@ -102,18 +106,25 @@ describe('VotingService', () => {
     });
 
     it('should return requested session', async () => {
-      const result = await votingService.getSession(SESSION_ID);
+      const result = await votingService.getSession(SESSION_ID, USER_ID);
       expect(result).toStrictEqual(mockSession);
+    });
+
+    it('should throw with wrong userId', async () => {
+      await expect(votingService.getSession(SESSION_ID, 'user-456')).rejects.toThrow({
+        name: 'DomainError',
+        message: 'User does not have access to this session',
+      });
     });
 
     it('should throw if session not found', async () => {      
       Session.findById.mockResolvedValue(null);
-      await expect(votingService.getSession(SESSION_ID)).rejects.toThrow(NotFoundError);
+      await expect(votingService.getSession(SESSION_ID, USER_ID)).rejects.toThrow(NotFoundError);
     });
 
     it('should throw if database call fails', async () => {
       Session.findById.mockRejectedValue(new Error('DB failure'));
-      await expect(votingService.getSession(SESSION_ID)).rejects.toThrow('DB failure');
+      await expect(votingService.getSession(SESSION_ID, USER_ID)).rejects.toThrow('DB failure');
     });
   });
 
@@ -126,12 +137,14 @@ describe('VotingService', () => {
       jest.clearAllMocks();
       
       mockSession1 = {
+        user: USER_ID,
         _id: SESSION_ID1,
         status: 'draft',
         save: jest.fn(),
       };
 
       mockSession2 = {
+        user: USER_ID,
         _id: SESSION_ID2,
         status: 'draft',
         save: jest.fn(),
@@ -141,13 +154,13 @@ describe('VotingService', () => {
     });
 
     it('should return all sessions', async () => {
-      const result = await votingService.getSessions();
+      const result = await votingService.getSessions(USER_ID);
       expect(result).toStrictEqual([mockSession1, mockSession2]);
     });
 
     it('should throw if database call fails', async () => {
       Session.find.mockRejectedValue(new Error('DB failure'));
-      await expect(votingService.getSessions()).rejects.toThrow('DB failure');
+      await expect(votingService.getSessions(USER_ID)).rejects.toThrow('DB failure');
     });
   });
 
@@ -156,9 +169,10 @@ describe('VotingService', () => {
       const mockSession = { status: 'draft', save: jest.fn() };
       Session.create.mockResolvedValue(mockSession);
 
-      const result = await votingService.createSession();
+      const result = await votingService.createSession(USER_ID);
 
       expect(Session.create).toHaveBeenCalledWith({
+        user: USER_ID,
         status: 'draft',
       });
       expect(result).toBe(mockSession);
@@ -173,6 +187,7 @@ describe('VotingService', () => {
       jest.clearAllMocks();
 
       mockSession = {
+        user: USER_ID,
         _id: SESSION_ID,
         status: 'draft',
         type: null,
@@ -183,6 +198,7 @@ describe('VotingService', () => {
       };
 
       reqBody = {
+        userId: USER_ID,
         type: 'solo',
         candidates: ['Alice', 'Bob', 'Connor'],
         voterCount: 20,
@@ -197,9 +213,10 @@ describe('VotingService', () => {
     });
 
     it('should return started solo session with valid input', async () => {
-      const result = await votingService.startSession(SESSION_ID, reqBody);
+      const result = await votingService.startSession(SESSION_ID, USER_ID, reqBody);
 
-      expect(mockSession.type).toBe('solo'),
+      expect(mockSession.user).toBe(USER_ID);
+      expect(mockSession.type).toBe('solo');
       expect(mockSession.configuration).toStrictEqual({
         voterCount: 20,
         proposal: null,
@@ -212,9 +229,10 @@ describe('VotingService', () => {
     });
 
     it('should return started exec session with valid type', async () => {
-      const result = await votingService.startSession(SESSION_ID, { ...reqBody, type: 'exec', role: 'Group Coordinator' });
+      const result = await votingService.startSession(SESSION_ID, USER_ID, { ...reqBody, type: 'exec', role: 'Group Coordinator' });
 
-      expect(mockSession.type).toBe('exec'),
+      expect(mockSession.user).toBe(USER_ID);
+      expect(mockSession.type).toBe('exec');
       expect(mockSession.configuration).toStrictEqual({
         voterCount: 20,
         proposal: null,
@@ -227,9 +245,10 @@ describe('VotingService', () => {
     });
 
     it('should return started callback session with valid type', async () => {
-      const result = await votingService.startSession(SESSION_ID, { ...reqBody, type: 'callback', candidates: ['Alice'] });
+      const result = await votingService.startSession(SESSION_ID, USER_ID, { ...reqBody, type: 'callback', candidates: ['Alice'] });
 
-      expect(mockSession.type).toBe('callback'),
+      expect(mockSession.user).toBe(USER_ID);
+      expect(mockSession.type).toBe('callback');
       expect(mockSession.configuration).toStrictEqual({
         voterCount: 20,
         proposal: null,
@@ -242,9 +261,10 @@ describe('VotingService', () => {
     });
 
     it('should return started pandahood session with valid type', async () => {
-      const result = await votingService.startSession(SESSION_ID, { ...reqBody, type: 'pandahood', proposal: 'Alice - Unconditional accept', candidates: ['Alice'] });
+      const result = await votingService.startSession(SESSION_ID, USER_ID, { ...reqBody, type: 'pandahood', proposal: 'Alice - Unconditional accept', candidates: ['Alice'] });
 
-      expect(mockSession.type).toBe('pandahood'),
+      expect(mockSession.user).toBe(USER_ID);
+      expect(mockSession.type).toBe('pandahood');
       expect(mockSession.configuration).toStrictEqual({
         voterCount: 20,
         proposal: 'Alice - Unconditional accept',
@@ -257,14 +277,14 @@ describe('VotingService', () => {
     });
 
     it('should throw if invalid session type', async () => {
-      await expect(votingService.startSession(SESSION_ID, { ...reqBody, type: 'invalid' })).rejects.toThrow(ValidationError);
+      await expect(votingService.startSession(SESSION_ID, USER_ID, { ...reqBody, type: 'invalid' })).rejects.toThrow(ValidationError);
     });
 
     it('should throw if sessionId does not exist', async () => {
       Session.findById.mockResolvedValue(null);
 
       await expect(
-        votingService.startSession('nonexistent-id', {})
+        votingService.startSession('nonexistent-id', USER_ID, {})
       ).rejects.toThrow(NotFoundError);
     });
 
@@ -272,7 +292,7 @@ describe('VotingService', () => {
       reqBody.candidates = ['alice', 'Alice', ' ', 'Bob'];
 
       await expect(
-        votingService.startSession(SESSION_ID, reqBody)
+        votingService.startSession(SESSION_ID, USER_ID, reqBody)
       ).rejects.toThrow(ValidationError);
     });
 
@@ -280,7 +300,9 @@ describe('VotingService', () => {
       mockSession.status = 'awaiting_moderator';
 
       await expect(
-        votingService.startSession(SESSION_ID, {})
+        votingService.startSession(SESSION_ID, USER_ID, {
+          userId: USER_ID,
+        })
       ).rejects.toThrow(SessionStatusError);
     });
 
@@ -288,7 +310,7 @@ describe('VotingService', () => {
       getNextState.mockReturnValue(null);
 
       await expect(
-        votingService.startSession(SESSION_ID, reqBody)
+        votingService.startSession(SESSION_ID, USER_ID, reqBody)
       ).rejects.toThrow(InvalidStateTransitionError);
 
       expect(getNextState).toHaveBeenCalledWith('draft', 'startSession');
@@ -316,6 +338,7 @@ describe('VotingService', () => {
       };
     
       mockSession = {
+        user: USER_ID,
         _id: SESSION_ID,
         status: 'awaiting_moderator',
         type: 'exec',
@@ -353,6 +376,7 @@ describe('VotingService', () => {
     it('should return initialized round', async () => {
       const result = await votingService.advanceToNextRound(
         SESSION_ID,
+        USER_ID,
         mockSession.initialCandidates
       );
 
@@ -366,7 +390,8 @@ describe('VotingService', () => {
     it('should throw if no provided candidates for 1st round', async () => {
       await expect(votingService.advanceToNextRound(
         SESSION_ID,
-        undefined,
+        USER_ID,
+        undefined
       )).rejects.toThrow(CandidateValidationError);
 
       expect(Session.findById).toHaveBeenCalledWith(SESSION_ID);
@@ -411,9 +436,11 @@ describe('VotingService', () => {
 
       const result = await votingService.advanceToNextRound(
         SESSION_ID,
+        USER_ID,
         null
       );
       
+      expect(mockSession.user).toBe(USER_ID);
       expect(mockSession.status).toBe('awaiting_votes');
       expect(mockSession.roundIds).toStrictEqual([ROUND_ID, 'round-456']);
       expect(Round.create).toHaveBeenCalledWith(initializeRoundResult2);
@@ -424,6 +451,7 @@ describe('VotingService', () => {
     it('should throw if provided candidates has duplicates and empty strings', async () => {
       await expect(votingService.advanceToNextRound(
         SESSION_ID,
+        USER_ID,
         ['Alice', 'alice', ' ', 'Bob']
       )).rejects.toThrow(CandidateValidationError);
 
@@ -437,6 +465,7 @@ describe('VotingService', () => {
 
       await expect(votingService.advanceToNextRound(
         SESSION_ID,
+        USER_ID,
         mockSession.initialCandidates
       )).rejects.toThrow(SessionStatusError);
 
@@ -448,6 +477,7 @@ describe('VotingService', () => {
 
       await expect(votingService.advanceToNextRound(
         SESSION_ID,
+        USER_ID,
         mockSession.initialCandidates
       )).rejects.toThrow(InvalidStateTransitionError);
 
@@ -472,6 +502,7 @@ describe('VotingService', () => {
       }));
 
       mockSession = {
+        user: USER_ID,
         _id: SESSION_ID,
         status: 'awaiting_votes',
         type: 'exec',
@@ -513,6 +544,7 @@ describe('VotingService', () => {
       };
 
       Session.findById.mockResolvedValue(mockSession);
+      Round.findById.mockResolvedValue(mockRound);
       Round.find.mockReturnValue({
         sort: jest.fn().mockResolvedValue([mockRound]),
       });
@@ -523,6 +555,7 @@ describe('VotingService', () => {
       const result = await votingService.submitVotes(
         SESSION_ID,
         ROUND_ID,
+        USER_ID,
         mockVotes
       );
 
@@ -535,15 +568,13 @@ describe('VotingService', () => {
       expect(result).toBe(mockRound);
     });
 
-    it('should throw if no existing rounds found for session', async () => {
-      mockSession.roundIds = [];
-      Round.find.mockReturnValue({
-        sort: jest.fn().mockResolvedValue([]),
-      });
+    it('should throw if round does not exist', async () => {
+      Round.findById.mockReturnValue(null);
 
       await expect(votingService.submitVotes(
         SESSION_ID,
         ROUND_ID,
+        USER_ID,
         mockVotes
       )).rejects.toThrow(NotFoundError);
     });
@@ -563,6 +594,7 @@ describe('VotingService', () => {
       await expect(votingService.submitVotes(
         SESSION_ID,
         ROUND_ID,
+        USER_ID,
         mockVotes
       )).rejects.toThrow(DomainError);
     });
@@ -573,6 +605,7 @@ describe('VotingService', () => {
       await expect(votingService.submitVotes(
         SESSION_ID,
         ROUND_ID,
+        USER_ID,
         mockVotes
       )).rejects.toThrow(VoteCandidateValidationError);
     });
@@ -594,6 +627,7 @@ describe('VotingService', () => {
       await expect(votingService.submitVotes(
         SESSION_ID,
         ROUND_ID,
+        USER_ID,
         mockVotes
       )).rejects.toThrow({
         name: 'VoteCandidateValidationError',
@@ -607,6 +641,7 @@ describe('VotingService', () => {
       await expect(votingService.submitVotes(
         SESSION_ID,
         ROUND_ID,
+        USER_ID,
         mockVotes
       )).rejects.toThrow(SessionStatusError);
     });
@@ -617,6 +652,7 @@ describe('VotingService', () => {
       await expect(votingService.submitVotes(
         SESSION_ID,
         ROUND_ID,
+        USER_ID,
         mockVotes
       )).rejects.toThrow(InvalidStateTransitionError);
 
@@ -633,6 +669,7 @@ describe('VotingService', () => {
       jest.clearAllMocks();
 
       mockSession = {
+        user: USER_ID,
         _id: SESSION_ID,
         status: 'awaiting_moderator',
         type: 'exec',
@@ -652,7 +689,7 @@ describe('VotingService', () => {
     });
 
     it('should return finalized session', async () => {
-      const result = await votingService.finalizeSession(SESSION_ID);
+      const result = await votingService.finalizeSession(SESSION_ID, USER_ID);
 
       expect(mockSession.status).toBe('complete');
       expect(mockSession.save).toHaveBeenCalled();
@@ -662,20 +699,25 @@ describe('VotingService', () => {
     it('should throw if invalid session state', async () => {
       mockSession.status = 'awaiting_votes';
 
-      await expect(votingService.finalizeSession(SESSION_ID)).rejects.toThrow(SessionStatusError);
+      await expect(votingService.finalizeSession(SESSION_ID, USER_ID)).rejects.toThrow(SessionStatusError);
     });
 
     it('should throw if invalid session state transition', async () => {
       getNextState.mockReturnValue(null);
 
-      await expect(votingService.finalizeSession(SESSION_ID)).rejects.toThrow(InvalidStateTransitionError);
+      await expect(votingService.finalizeSession(SESSION_ID, USER_ID)).rejects.toThrow(InvalidStateTransitionError);
 
       expect(getNextState).toHaveBeenCalledWith('awaiting_moderator', 'finalizeSession');
     });
 
     it('should throw when submitting votes to finalized session', async () => {
-      await votingService.finalizeSession(SESSION_ID);
-      await expect(votingService.submitVotes(SESSION_ID, ROUND_ID, [])).rejects.toThrow(SessionStatusError);
+      await votingService.finalizeSession(SESSION_ID, USER_ID);
+      await expect(votingService.submitVotes(
+        SESSION_ID,
+        ROUND_ID,
+        USER_ID,
+        []
+      )).rejects.toThrow(SessionStatusError);
     });
   });
 });

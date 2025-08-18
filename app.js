@@ -7,8 +7,13 @@ const {
   unknownEndpoint,
   errorHandler,
 } = require("./utils/middleware");
-const votingRouter = require("./controllers/votingSessions");
+
+const usersRouter = require('./controllers/users');
+const loginRouter = require('./controllers/login');
+const votingSessionsRouter = require("./controllers/votingSessions");
 const VotingService = require("./services/VotingService");
+
+const { authMiddleware } = require('./utils/auth');
 
 info("connecting to", MONGODB_URI);
 (async () => {
@@ -27,7 +32,9 @@ app.use(requestLogger);
 
 const votingService = new VotingService();
 
-app.use("/api/sessions", votingRouter(votingService));
+app.use("/api/sessions", authMiddleware, votingSessionsRouter(votingService));
+app.use('/api/users', usersRouter);
+app.use('/api/login', loginRouter);
 app.use(unknownEndpoint);
 app.use(errorHandler);
 

@@ -356,12 +356,11 @@ describe('SoloStrategy', () => {
           it('should return soloist and understudy if threshold is met and no runner-up ties', () => {
             const { result } = strategy.getResult(
               [
-                { candidateId: 'Alice', count: 8 },
+                { candidateId: 'Alice', count: 14 },
                 { candidateId: 'Bob', count: 6 },
-                { candidateId: 'Connor', count: 5 },
               ],
               {
-                candidates: [ 'Alice', 'Bob', 'Connor' ],
+                candidates: [ 'Alice', 'Bob',],
                 voterCount: 20,
                 roundNumber: 1,
                 previousRound: null,

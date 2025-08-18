@@ -10,11 +10,12 @@ module.exports = (votingService) => {
     sessionAndRoundIdParams,
     objectIdSchema,
   } = require('../schemas/objectIdSchema');
+  const User = require('../models/User');
 
   router.get(
     "/",
     handleController(async (req, res, next) => {
-      const sessions = await votingService.getSessions();
+      const sessions = await votingService.getSessions(req.userId);
       res.json(sessions);
     })
   );
@@ -23,7 +24,10 @@ module.exports = (votingService) => {
     "/:sessionId",
     zodMiddleware({ params: sessionIdParam }),
     handleController(async (req, res, next) => {
-      const session = await votingService.getSession(req.validatedParams.sessionId);
+      const session = await votingService.getSession(
+        req.validatedParams.sessionId,
+        req.userId,
+      );
       res.json(session);
     })
   );
@@ -34,7 +38,8 @@ module.exports = (votingService) => {
     handleController(async (req, res, next) => {
       const round = await votingService.getRound(
         req.validatedParams.sessionId,
-        req.validatedParams.roundId
+        req.validatedParams.roundId,
+        req.userId,
       );
       res.json(round);
     })
@@ -43,7 +48,10 @@ module.exports = (votingService) => {
   router.post(
     "/",
     handleController(async (req, res, next) => {
-      const session = await votingService.createSession();
+      const session = await votingService.createSession(req.userId);
+
+      await User.findByIdAndUpdate(req.userId, { $push: { sessions: session._id }});
+
       res.status(201).json(session);
     })
   );
@@ -54,6 +62,7 @@ module.exports = (votingService) => {
     handleController(async (req, res, next) => {
       const session = await votingService.startSession(
         req.validatedParams.sessionId,
+        req.userId,
         req.validatedBody,
       );
       res.json(session);
@@ -66,6 +75,7 @@ module.exports = (votingService) => {
     handleController(async (req, res, next) => {
       const createdRound = await votingService.advanceToNextRound(
         req.validatedParams.sessionId,
+        req.userId,
         req.validatedBody.providedCandidates,
       );
       res.json(createdRound);
@@ -79,6 +89,7 @@ module.exports = (votingService) => {
       const finalizedRound = await votingService.submitVotes(
         req.validatedParams.sessionId,
         req.validatedParams.roundId,
+        req.userId,
         req.validatedBody.votes,
       );
       res.json(finalizedRound);
@@ -89,7 +100,10 @@ module.exports = (votingService) => {
     "/:sessionId/finalize",
     zodMiddleware({ params: sessionIdParam }),
     handleController(async (req, res, next) => {
-      const session = await votingService.finalizeRound(req.validatedParams.sessionId);
+      const session = await votingService.finalizeSession(
+        req.validatedParams.sessionId,
+        req.userId,
+      );
       res.json(session);
     })
   );

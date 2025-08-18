@@ -8,4 +8,8 @@ module.exports = {
   SessionStatusError: require('./SessionStatusError'),
   LogicConflictError: require('./LogicConflictError'),
   NotFoundError: require('./NotFoundError'),
-}
+  AuthError: require('./AuthError'),
+  InvalidTokenError: require('./InvalidTokenError'),
+  MissingTokenError: require('./MissingTokenError'),
+  ExpiredTokenError: require('./ExpiredTokenError'),
+};
